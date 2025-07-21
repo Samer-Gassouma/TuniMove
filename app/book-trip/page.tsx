@@ -24,6 +24,8 @@ interface TripDetails {
   passengers: number;
 }
 
+
+
 export default function BookTripPage() {
   const [selectionMode, setSelectionMode] = useState<'dropdown' | 'map'>('dropdown');
   const [tripDetails, setTripDetails] = useState<TripDetails>({
@@ -43,7 +45,7 @@ export default function BookTripPage() {
   const [animatingStation, setAnimatingStation] = useState<string | null>(null);
   const [stations, setStations] = useState<Station[]>([]);
   const [nearestStations, setNearestStations] = useState<Station[]>([]);
-  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number, longitude: number } | null>(null);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [hasSetNearestStation, setHasSetNearestStation] = useState(false);
@@ -55,6 +57,9 @@ export default function BookTripPage() {
   const [connectionStatus, setConnectionStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
   const [currentRoute, setCurrentRoute] = useState<RouteInfo | null>(null);
   const [routeGeometry, setRouteGeometry] = useState<any>(null);
+
+
+
   const mapRef = useRef<any>(null);
   const router = useRouter();
 
@@ -69,7 +74,7 @@ export default function BookTripPage() {
   useEffect(() => {
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
-    
+
     if (!token) {
       console.log('⚠️ User not authenticated - booking will require login');
     }
@@ -98,9 +103,9 @@ export default function BookTripPage() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         console.log(`📍 User location: ${latitude}, ${longitude}`);
-        
+
         setUserLocation({ latitude, longitude });
-        
+
         // Update map view to user location
         setViewState({
           longitude,
@@ -115,7 +120,7 @@ export default function BookTripPage() {
       (error) => {
         console.error('❌ Geolocation error:', error);
         let errorMessage = 'Unable to get your location';
-        
+
         switch (error.code) {
           case error.PERMISSION_DENIED:
             errorMessage = 'Location access denied. Please enable location services.';
@@ -127,7 +132,7 @@ export default function BookTripPage() {
             errorMessage = 'Location request timed out.';
             break;
         }
-        
+
         setLocationError(errorMessage);
         setIsLoadingLocation(false);
       },
@@ -140,11 +145,11 @@ export default function BookTripPage() {
     const R = 6371; // Earth's radius in kilometers
     const dLat = (lat2 - lat1) * Math.PI / 180;
     const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon/2) * Math.sin(dLon/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
@@ -167,18 +172,18 @@ export default function BookTripPage() {
       });
 
       setNearestStations(sortedStations.slice(0, 10));
-      
+
       // Auto-select the best station (prioritizing online stations)
       if (sortedStations.length > 0 && !tripDetails.from && !hasSetNearestStation) {
         const bestStation = sortedStations[0];
-        
+
         setTripDetails(prev => ({
           ...prev,
           from: bestStation
         }));
-        
+
         setHasSetNearestStation(true);
-        
+
         // Animate to best station
         setViewState({
           longitude: bestStation.longitude!,
@@ -215,11 +220,11 @@ export default function BookTripPage() {
     try {
       // Simulate connection delay
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       setConnectedStation(station);
       setConnectionStatus('connected');
       console.log(`✅ Successfully connected to ${station.name}`);
-      
+
     } catch (error) {
       console.error(`❌ Failed to connect to ${station.name}:`, error);
       setConnectionStatus('disconnected');
@@ -247,19 +252,19 @@ export default function BookTripPage() {
 
       // Use Mapbox Directions API to get real road route
       const directionsUrl = `https://api.mapbox.com/directions/v5/mapbox/driving/${fromStation.longitude},${fromStation.latitude};${toStation.longitude},${toStation.latitude}?geometries=geojson&overview=full&steps=true&access_token=${MAPBOX_TOKEN}`;
-      
+
       console.log('🌐 Fetching real route from Mapbox Directions API...');
       const response = await fetch(directionsUrl);
-      
+
       if (!response.ok) {
         throw new Error(`Mapbox API error: ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.routes && data.routes.length > 0) {
         const route = data.routes[0];
-        
+
         // Create GeoJSON from the real route geometry
         const routeGeoJSON = {
           type: 'Feature',
@@ -272,27 +277,27 @@ export default function BookTripPage() {
 
         setRouteGeometry(routeGeoJSON);
         setIsLoadingRoute(false);
-        
+
         console.log(`✅ Real route fetched: ${(route.distance / 1000).toFixed(1)}km, ${Math.round(route.duration / 60)}min`);
 
         // Fit the map to show the entire route
         if (mapRef.current) {
           const map = mapRef.current.getMap();
-          
+
           // Get bounds from the route geometry
           const coordinates = route.geometry.coordinates;
           let minLng = coordinates[0][0], maxLng = coordinates[0][0];
           let minLat = coordinates[0][1], maxLat = coordinates[0][1];
-          
+
           coordinates.forEach((coord: [number, number]) => {
             minLng = Math.min(minLng, coord[0]);
             maxLng = Math.max(maxLng, coord[0]);
             minLat = Math.min(minLat, coord[1]);
             maxLat = Math.max(maxLat, coord[1]);
           });
-          
+
           const bounds = [[minLng, minLat], [maxLng, maxLat]];
-          
+
           map.fitBounds(bounds, {
             padding: 80,
             duration: 1500
@@ -306,7 +311,7 @@ export default function BookTripPage() {
       console.error('❌ Error fetching real route:', error);
       console.log('🔄 Falling back to straight line route...');
       setIsLoadingRoute(false);
-      
+
       // Fallback to straight line if API fails
       const fallbackRouteGeoJSON = {
         type: 'Feature',
@@ -329,7 +334,7 @@ export default function BookTripPage() {
           [Math.min(fromStation.longitude, toStation.longitude), Math.min(fromStation.latitude, toStation.latitude)],
           [Math.max(fromStation.longitude, toStation.longitude), Math.max(fromStation.latitude, toStation.latitude)]
         ];
-        
+
         map.fitBounds(bounds, {
           padding: 50,
           duration: 1500
@@ -337,6 +342,8 @@ export default function BookTripPage() {
       }
     }
   };
+
+
 
   // Create booking and redirect to payment
   const createBooking = async () => {
@@ -359,7 +366,7 @@ export default function BookTripPage() {
     try {
       // Combine date and time for journeyDate (ISO format)
       const journeyDateTime = new Date(`${tripDetails.date}T${tripDetails.time}:00.000Z`);
-      
+
       // Validate the date
       if (isNaN(journeyDateTime.getTime())) {
         throw new Error('Invalid date or time selected');
@@ -369,7 +376,7 @@ export default function BookTripPage() {
       if (journeyDateTime <= new Date()) {
         throw new Error('Journey date must be in the future');
       }
-      
+
       console.log('🎫 Creating booking...', {
         from: tripDetails.from.name,
         to: tripDetails.to.name,
@@ -386,7 +393,7 @@ export default function BookTripPage() {
         journeyDate: journeyDateTime.toISOString()
       };
 
-            // Call Next.js API route (which proxies to central server)
+      // Call Next.js API route (which proxies to central server)
       const response = await fetch('/api/bookings', {
         method: 'POST',
         headers: {
@@ -394,7 +401,7 @@ export default function BookTripPage() {
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify(bookingData)
-      });  
+      });
 
       const result = await response.json();
 
@@ -405,7 +412,7 @@ export default function BookTripPage() {
       if (result.success && result.data?.paymentUrl) {
         console.log('✅ Booking created successfully:', result.data.booking.id);
         console.log('💳 Redirecting to payment:', result.data.paymentUrl);
-        
+
         // Automatically redirect to Konnect payment
         window.location.href = result.data.paymentUrl;
       } else {
@@ -429,10 +436,12 @@ export default function BookTripPage() {
     }
   }, [tripDetails.from, tripDetails.to]);
 
+
+
   const handleMapClick = (event: any) => {
+    const { lng, lat } = event.lngLat;
+
     if (selectedPoint && selectionMode === 'map') {
-      const { lng, lat } = event.lngLat;
-      
       // Create a custom station for the selected point
       const customStation: Station = {
         id: `custom-${selectedPoint}-${Date.now()}`,
@@ -464,7 +473,7 @@ export default function BookTripPage() {
       // Trigger animation effect
       setAnimatingStation(customStation.id);
       setTimeout(() => setAnimatingStation(null), 2000);
-      
+
       setSelectedPoint(null);
     }
   };
@@ -472,7 +481,7 @@ export default function BookTripPage() {
   const handleMapLoad = () => {
     if (mapRef.current) {
       const map = mapRef.current.getMap();
-      
+
       // Add 3D buildings layer
       map.on('style.load', () => {
         // Check if the layer already exists
@@ -515,12 +524,12 @@ export default function BookTripPage() {
   const handleStationSelect = (stationId: string, pointType: 'from' | 'to') => {
     // Look in stations from central server data first
     let station = TUNISIA_STATIONS.find(s => s.id === stationId);
-    
+
     if (!station) {
       // Look in nearest stations from location search
       station = nearestStations.find(s => s.id === stationId);
     }
-    
+
     if (station) {
       setTripDetails(prev => ({
         ...prev,
@@ -574,7 +583,7 @@ export default function BookTripPage() {
     <div className="min-h-screen relative bg-black">
       {/* Particle Background */}
       <div className="fixed inset-0 z-0">
-        <ParticleBackground 
+        <ParticleBackground
           particleColor="rgba(59, 130, 246, 0.6)"
           connectionColor="rgba(59, 130, 246, 0.2)"
         />
@@ -596,16 +605,16 @@ export default function BookTripPage() {
               >
                 <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </Button>
-              
+
               <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
                 <Route className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
               </div>
-              
+
               <div className="flex-1">
                 <h1 className="text-lg sm:text-2xl font-bold text-white">Book Your Trip</h1>
                 <p className="text-gray-400 text-sm sm:text-base">Find and reserve your perfect journey</p>
               </div>
-              
+
               {/* Connection Status Indicator */}
               {connectionStatus !== 'disconnected' && (
                 <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-gray-800/50 border border-slate-600">
@@ -630,7 +639,7 @@ export default function BookTripPage() {
         {/* Main Content */}
         <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
-            
+
             {/* Booking Form */}
             <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50 order-2 xl:order-1">
               <CardHeader className="p-4 sm:p-6">
@@ -641,18 +650,17 @@ export default function BookTripPage() {
                       Choose your journey preferences
                     </CardDescription>
                   </div>
-                  
+
                   {/* Selection Mode Toggle */}
                   <div className="flex rounded-lg bg-slate-800/50 border border-slate-600/50 p-1">
                     <Button
                       size="sm"
                       variant={selectionMode === 'dropdown' ? 'default' : 'ghost'}
                       onClick={() => setSelectionMode('dropdown')}
-                      className={`text-xs sm:text-sm ${
-                        selectionMode === 'dropdown'
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-slate-700'
-                      }`}
+                      className={`text-xs sm:text-sm ${selectionMode === 'dropdown'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-slate-700'
+                        }`}
                     >
                       <Search className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Dropdown
@@ -661,19 +669,20 @@ export default function BookTripPage() {
                       size="sm"
                       variant={selectionMode === 'map' ? 'default' : 'ghost'}
                       onClick={() => setSelectionMode('map')}
-                      className={`text-xs sm:text-sm ${
-                        selectionMode === 'map'
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                          : 'text-gray-400 hover:text-white hover:bg-slate-700'
-                      }`}
+                      className={`text-xs sm:text-sm ${selectionMode === 'map'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'text-gray-400 hover:text-white hover:bg-slate-700'
+                        }`}
                     >
                       <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Map
                     </Button>
                   </div>
                 </div>
+                                  {/* Trip Mode Selection */}
+
               </CardHeader>
-              
+
               <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
                 {/* Location Services */}
                 <div className="space-y-3">
@@ -694,13 +703,13 @@ export default function BookTripPage() {
                       {isLoadingLocation ? 'Finding...' : 'Use My Location'}
                     </Button>
                   </div>
-                  
+
                   {locationError && (
                     <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
                       {locationError}
                     </div>
                   )}
-                  
+
                   {userLocation && nearestStations.length > 0 && (
                     <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20">
                       <div className="flex items-center gap-2 text-green-400 text-sm mb-2">
@@ -759,7 +768,7 @@ export default function BookTripPage() {
                               <div className="border-t border-slate-600 my-1"></div>
                             </>
                           )}
-                          
+
                           {/* Central Server Stations */}
                           {TUNISIA_STATIONS.filter(station => !nearestStations.find(ns => ns.id === station.id)).map((station) => (
                             <SelectItem key={station.id} value={station.id} className="text-white hover:bg-slate-700">
@@ -788,9 +797,8 @@ export default function BookTripPage() {
                       <Button
                         variant="outline"
                         onClick={() => setSelectedPoint('from')}
-                        className={`w-full h-11 sm:h-12 justify-start bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700 ${
-                          selectedPoint === 'from' ? 'border-blue-400 bg-blue-500/10' : ''
-                        }`}
+                        className={`w-full h-11 sm:h-12 justify-start bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700 ${selectedPoint === 'from' ? 'border-blue-400 bg-blue-500/10' : ''
+                          }`}
                       >
                         <MapPin className="w-4 h-4 mr-2 text-blue-400" />
                         {tripDetails.from ? tripDetails.from.name : 'Click map to select origin'}
@@ -855,7 +863,7 @@ export default function BookTripPage() {
                               <div className="border-t border-slate-600 my-1"></div>
                             </>
                           )}
-                          
+
                           {/* Central Server Stations */}
                           {TUNISIA_STATIONS.filter(station => !nearestStations.find(ns => ns.id === station.id)).map((station) => (
                             <SelectItem key={station.id} value={station.id} className="text-white hover:bg-slate-700">
@@ -884,9 +892,8 @@ export default function BookTripPage() {
                       <Button
                         variant="outline"
                         onClick={() => setSelectedPoint('to')}
-                        className={`w-full h-11 sm:h-12 justify-start bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700 ${
-                          selectedPoint === 'to' ? 'border-purple-400 bg-purple-500/10' : ''
-                        }`}
+                        className={`w-full h-11 sm:h-12 justify-start bg-slate-800/50 border-slate-600 text-white hover:bg-slate-700 ${selectedPoint === 'to' ? 'border-purple-400 bg-purple-500/10' : ''
+                          }`}
                       >
                         <MapPin className="w-4 h-4 mr-2 text-purple-400" />
                         {tripDetails.to ? tripDetails.to.name : 'Click map to select destination'}
@@ -942,8 +949,8 @@ export default function BookTripPage() {
                   </label>
                   <div className="relative">
                     <Users className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Select 
-                      value={tripDetails.passengers.toString()} 
+                    <Select
+                      value={tripDetails.passengers.toString()}
                       onValueChange={(value) => setTripDetails(prev => ({ ...prev, passengers: parseInt(value) }))}
                     >
                       <SelectTrigger className="h-11 sm:h-12 pl-10 bg-slate-800/50 border-slate-600 text-white">
@@ -974,7 +981,7 @@ export default function BookTripPage() {
                           {isLoadingRoute ? 'Finding Best Route...' : 'Route Information'}
                         </h3>
                       </div>
-                      
+
                       {isLoadingRoute ? (
                         <div className="text-center py-4">
                           <div className="flex items-center justify-center gap-2 mb-2">
@@ -1040,6 +1047,11 @@ export default function BookTripPage() {
 
 
 
+
+
+                
+
+
                 {/* Book Trip Button */}
                 {tripDetails.from && tripDetails.to && tripDetails.date && tripDetails.time && currentRoute && !isLoadingRoute && (
                   <div className="space-y-3">
@@ -1048,7 +1060,7 @@ export default function BookTripPage() {
                         <p className="text-red-400 text-sm">{bookingError}</p>
                       </div>
                     )}
-                    
+
                     {isAuthenticated ? (
                       <>
                         <Button
@@ -1092,7 +1104,7 @@ export default function BookTripPage() {
                 )}
 
                 {/* Search Button */}
-                <Button 
+                <Button
                   onClick={handleSearch}
                   disabled={!tripDetails.from || !tripDetails.to || !tripDetails.date}
                   className="w-full h-11 sm:h-12 text-base sm:text-lg font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300"
@@ -1111,15 +1123,15 @@ export default function BookTripPage() {
                   Interactive Map
                 </CardTitle>
                 <CardDescription className="text-gray-400 text-sm sm:text-base">
-                  {selectionMode === 'map' && selectedPoint 
+                  {selectionMode === 'map' && selectedPoint
                     ? `Click on the map to select your ${selectedPoint === 'from' ? 'origin' : 'destination'}`
                     : userLocation && nearestStations.length > 0
-                    ? `Showing ${nearestStations.length} nearest stations. Green markers are online, gray are offline.`
-                    : 'Explore stations across Tunisia with 3D visualization. Use location services for personalized results.'
+                      ? `Showing ${nearestStations.length} nearest stations. Green markers are online, gray are offline.`
+                      : 'Explore stations across Tunisia with 3D visualization. Use location services for personalized results.'
                   }
                 </CardDescription>
               </CardHeader>
-              
+
               <CardContent className="p-4 sm:p-6">
                 <div className="h-64 sm:h-80 lg:h-96 rounded-xl overflow-hidden border border-slate-600/50">
                   <Map
@@ -1216,18 +1228,17 @@ export default function BookTripPage() {
                         }}
                       >
                         <div className="relative">
-                          <div 
-                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${
-                              animatingStation === station.id 
-                                ? `animate-ping ${station.isOnline ? 'bg-green-500 border-green-400' : 'bg-gray-500 border-gray-400'} scale-150` 
-                                : tripDetails.from?.id === station.id
+                          <div
+                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${animatingStation === station.id
+                              ? `animate-ping ${station.isOnline ? 'bg-green-500 border-green-400' : 'bg-gray-500 border-gray-400'} scale-150`
+                              : tripDetails.from?.id === station.id
                                 ? 'bg-blue-500 border-blue-400 scale-125 shadow-lg shadow-blue-500/50'
                                 : tripDetails.to?.id === station.id
-                                ? 'bg-purple-500 border-purple-400 scale-125 shadow-lg shadow-purple-500/50'
-                                : station.isOnline
-                                ? 'bg-green-500 border-green-400 hover:bg-green-600 hover:scale-110 shadow-lg shadow-green-500/30'
-                                : 'bg-gray-500 border-gray-400 hover:bg-gray-600 hover:scale-110 shadow-lg shadow-gray-500/30'
-                            }`}
+                                  ? 'bg-purple-500 border-purple-400 scale-125 shadow-lg shadow-purple-500/50'
+                                  : station.isOnline
+                                    ? 'bg-green-500 border-green-400 hover:bg-green-600 hover:scale-110 shadow-lg shadow-green-500/30'
+                                    : 'bg-gray-500 border-gray-400 hover:bg-gray-600 hover:scale-110 shadow-lg shadow-gray-500/30'
+                              }`}
                             title={`${station.name} (${station.distance?.toFixed(1)}km away) - ${station.isOnline ? 'Online' : 'Offline'}`}
                           >
                             <MapPin className="w-4 h-4 text-white" />
@@ -1255,18 +1266,17 @@ export default function BookTripPage() {
                         }}
                       >
                         <div className="relative">
-                          <div 
-                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${
-                              animatingStation === station.id 
-                                ? `animate-ping ${station.isOnline ? 'bg-green-500 border-green-400' : 'bg-gray-500 border-gray-400'} scale-150` 
-                                : tripDetails.from?.id === station.id
+                          <div
+                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${animatingStation === station.id
+                              ? `animate-ping ${station.isOnline ? 'bg-green-500 border-green-400' : 'bg-gray-500 border-gray-400'} scale-150`
+                              : tripDetails.from?.id === station.id
                                 ? 'bg-blue-500 border-blue-400 scale-125 shadow-lg shadow-blue-500/50'
                                 : tripDetails.to?.id === station.id
-                                ? 'bg-purple-500 border-purple-400 scale-125 shadow-lg shadow-purple-500/50'
-                                : station.isOnline
-                                ? 'bg-green-500 border-green-400 hover:bg-green-600 hover:scale-110 shadow-lg shadow-green-500/30'
-                                : 'bg-gray-500 border-gray-400 hover:bg-gray-600 hover:scale-110 shadow-lg shadow-gray-500/30'
-                            }`}
+                                  ? 'bg-purple-500 border-purple-400 scale-125 shadow-lg shadow-purple-500/50'
+                                  : station.isOnline
+                                    ? 'bg-green-500 border-green-400 hover:bg-green-600 hover:scale-110 shadow-lg shadow-green-500/30'
+                                    : 'bg-gray-500 border-gray-400 hover:bg-gray-600 hover:scale-110 shadow-lg shadow-gray-500/30'
+                              }`}
                             title={`${station.name} - ${station.isOnline ? 'Online' : 'Offline'}`}
                           >
                             <MapPin className="w-4 h-4 text-white" />
@@ -1302,6 +1312,8 @@ export default function BookTripPage() {
                         </div>
                       </Marker>
                     )}
+
+
                   </Map>
                 </div>
 
@@ -1311,11 +1323,10 @@ export default function BookTripPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => setMapStyle('mapbox://styles/mapbox/dark-v11')}
-                    className={`text-xs border-slate-600 ${
-                      mapStyle === 'mapbox://styles/mapbox/dark-v11' 
-                        ? 'bg-slate-700 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`text-xs border-slate-600 ${mapStyle === 'mapbox://styles/mapbox/dark-v11'
+                      ? 'bg-slate-700 text-white'
+                      : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     Dark
                   </Button>
@@ -1323,11 +1334,10 @@ export default function BookTripPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => setMapStyle('mapbox://styles/mapbox/satellite-streets-v12')}
-                    className={`text-xs border-slate-600 ${
-                      mapStyle === 'mapbox://styles/mapbox/satellite-streets-v12' 
-                        ? 'bg-slate-700 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`text-xs border-slate-600 ${mapStyle === 'mapbox://styles/mapbox/satellite-streets-v12'
+                      ? 'bg-slate-700 text-white'
+                      : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     Satellite
                   </Button>
@@ -1335,11 +1345,10 @@ export default function BookTripPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => setMapStyle('mapbox://styles/mapbox/streets-v12')}
-                    className={`text-xs border-slate-600 ${
-                      mapStyle === 'mapbox://styles/mapbox/streets-v12' 
-                        ? 'bg-slate-700 text-white' 
-                        : 'text-gray-400 hover:text-white'
-                    }`}
+                    className={`text-xs border-slate-600 ${mapStyle === 'mapbox://styles/mapbox/streets-v12'
+                      ? 'bg-slate-700 text-white'
+                      : 'text-gray-400 hover:text-white'
+                      }`}
                   >
                     Streets
                   </Button>
