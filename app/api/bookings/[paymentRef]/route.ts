@@ -2,10 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { paymentRef: string } }
+  { params }: { params: Promise<{ paymentRef: string }> }
 ) {
   try {
-    const { paymentRef } = params;
+    const resolvedParams = await params;
+    const { paymentRef } = resolvedParams;
     
     if (!paymentRef) {
       return NextResponse.json(
@@ -20,8 +21,8 @@ export async function GET(
 
     console.log('🔍 Proxying booking details request to central server:', paymentRef);
 
-    // Forward request to central server
-    const centralServerUrl = `http://localhost:5000/api/v1/bookings/payment/${paymentRef}`;
+    // Call the new comprehensive booking details endpoint
+    const centralServerUrl = `http://localhost:5000/api/v1/central-bookings/booking-details/${paymentRef}`;
     
     const response = await fetch(centralServerUrl, {
       method: 'GET',
@@ -43,6 +44,10 @@ export async function GET(
   } catch (error) {
     console.error('❌ Booking details API error:', error);
     
+    // Get paymentRef for mock response
+    const resolvedParams = await params;
+    const { paymentRef: mockPaymentRef } = resolvedParams;
+    
     // Return mock booking for development
     const mockBooking = {
       success: true,
@@ -55,7 +60,7 @@ export async function GET(
           seatsBooked: 2,
           totalAmount: 25.00,
           journeyDate: new Date().toISOString(),
-          paymentReference: params.paymentRef,
+          paymentReference: mockPaymentRef,
           paymentProcessedAt: new Date().toISOString(),
           createdAt: new Date().toISOString(),
           departureStation: {

@@ -2,36 +2,35 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { UserPlus, Phone, Lock, User, Mail, ArrowLeft, Eye, EyeOff, CheckCircle } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Eye, EyeOff, UserPlus, User, Phone, Lock } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    phoneNumber: "",
     firstName: "",
     lastName: "",
+    phoneNumber: "",
     password: "",
-    confirmPassword: "",
-    email: ""
+    confirmPassword: ""
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [step, setStep] = useState(1); // 1: Registration, 2: Phone Verification
-  const [verificationCode, setVerificationCode] = useState("");
   const router = useRouter();
+  const { register } = useAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -39,370 +38,217 @@ export default function RegisterPage() {
     setIsLoading(true);
     setError("");
 
-    // Validation
+    // Client-side validation
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords don't match");
+      setError("Passwords do not match");
       setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+      setError("Password must be at least 6 characters long");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!formData.phoneNumber.match(/^[0-9]{8}$/)) {
+      setError("Phone number must be 8 digits");
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch('/api/v1/users/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber: formData.phoneNumber,
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          password: formData.password,
-          email: formData.email || undefined, // Send only if provided
-        }),
+      console.log('🔐 Attempting registration with:', { 
+        ...formData, 
+        password: '***', 
+        confirmPassword: '***' 
       });
+      
+      const result = await register(
+        formData.firstName,
+        formData.lastName,
+        formData.phoneNumber,
+        formData.password
+      );
 
-      const data = await response.json();
-
-      if (response.ok) {
-        // Move to phone verification step
-        setStep(2);
+      if (result.success) {
+        console.log('✅ Registration successful, redirecting to dashboard');
+        
+        // Force a full page reload to ensure middleware picks up the cookie
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 100);
       } else {
-        setError(data.message || 'Registration failed');
+        console.error('❌ Registration failed:', result.error);
+        setError(result.error || 'Registration failed');
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      console.error('❌ Unexpected error during registration:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleVerification = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const response = await fetch('/api/v1/users/verify-phone', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber: formData.phoneNumber,
-          verificationCode: verificationCode,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        // Phone verified successfully, redirect to login
-        router.push('/auth/login?message=Account created successfully. Please sign in.');
-      } else {
-        setError(data.message || 'Verification failed');
-      }
-    } catch (error) {
-      setError('Network error. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const resendCode = async () => {
-    try {
-      await fetch('/api/v1/users/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber: formData.phoneNumber,
-        }),
-      });
-    } catch (error) {
-      console.error('Failed to resend code');
     }
   };
 
   return (
-    <div className="min-h-screen relative bg-black">
-      {/* Particle Background */}
-      <div className="fixed inset-0 z-0">
-        <ParticleBackground 
-          particleColor="rgba(34, 197, 94, 0.6)"
-          connectionColor="rgba(34, 197, 94, 0.2)"
-        />
-      </div>
-
-      {/* Background Gradient */}
-      <div className="fixed inset-0 z-1 bg-gradient-to-br from-green-900/30 via-slate-900/50 to-blue-900/30" />
-
-      {/* Content */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-3 sm:p-6">
-        <Card className="w-full max-w-md backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50 shadow-2xl">
-          {step === 1 ? (
-            <>
-              <CardHeader className="text-center p-4 sm:p-6">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <UserPlus className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                </div>
-                
-                <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
-                  Create Account
-                </CardTitle>
-                <CardDescription className="text-gray-400 text-base sm:text-lg">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+      <ParticleBackground />
+      
+      <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
+        <div className="w-full max-w-md">
+          <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
+            <CardHeader className="space-y-6 text-center">
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                <UserPlus className="w-8 h-8 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-2xl font-bold text-white">Create Account</CardTitle>
+                <CardDescription className="text-gray-400 mt-2">
                   Join TuniMove and start your journey
                 </CardDescription>
-              </CardHeader>
+              </div>
+            </CardHeader>
 
-              <CardContent className="p-4 sm:p-6">
-                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                  {error && (
-                    <div className="p-3 sm:p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                      {error}
-                    </div>
-                  )}
-
-                  {/* Name Fields */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-300">
-                        First Name
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input
-                          type="text"
-                          name="firstName"
-                          placeholder="First name"
-                          value={formData.firstName}
-                          onChange={handleInputChange}
-                          className="h-11 sm:h-12 pl-12 text-base sm:text-lg bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="block text-sm font-medium text-gray-300">
-                        Last Name
-                      </label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input
-                          type="text"
-                          name="lastName"
-                          placeholder="Last name"
-                          value={formData.lastName}
-                          onChange={handleInputChange}
-                          className="h-11 sm:h-12 pl-12 text-base sm:text-lg bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
-                          required
-                        />
-                      </div>
-                    </div>
+            <CardContent className="space-y-6">
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {error && (
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+                    {error}
                   </div>
+                )}
 
-                  {/* Phone Number */}
+                <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Phone Number
-                    </label>
+                    <label className="text-sm font-medium text-gray-300">First Name</label>
                     <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
-                        type="tel"
-                        name="phoneNumber"
-                        placeholder="+216 XX XXX XXX"
-                        value={formData.phoneNumber}
+                        name="firstName"
+                        type="text"
+                        placeholder="First name"
+                        value={formData.firstName}
                         onChange={handleInputChange}
-                        className="h-11 sm:h-12 pl-12 text-base sm:text-lg bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
+                        className="pl-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
                         required
                       />
                     </div>
                   </div>
 
-                  {/* Email (Optional) */}
                   <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Email Address <span className="text-gray-500">(Optional)</span>
-                    </label>
+                    <label className="text-sm font-medium text-gray-300">Last Name</label>
                     <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                       <Input
-                        type="email"
-                        name="email"
-                        placeholder="your@email.com"
-                        value={formData.email}
+                        name="lastName"
+                        type="text"
+                        placeholder="Last name"
+                        value={formData.lastName}
                         onChange={handleInputChange}
-                        className="h-11 sm:h-12 pl-12 text-base sm:text-lg bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Password */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input
-                        type={showPassword ? "text" : "password"}
-                        name="password"
-                        placeholder="Enter your password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="h-11 sm:h-12 pl-12 pr-12 text-base sm:text-lg bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
+                        className="pl-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
                         required
                       />
-                      <button
-                        type="button"
-                        onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                      >
-                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
                     </div>
-                  </div>
-
-                  {/* Confirm Password */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Confirm Password
-                    </label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input
-                        type={showConfirmPassword ? "text" : "password"}
-                        name="confirmPassword"
-                        placeholder="Confirm your password"
-                        value={formData.confirmPassword}
-                        onChange={handleInputChange}
-                        className="h-11 sm:h-12 pl-12 pr-12 text-base sm:text-lg bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
-                      >
-                        {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                      </button>
-                    </div>
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full h-11 sm:h-12 text-base sm:text-lg font-semibold rounded-xl bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 shadow-xl"
-                  >
-                    {isLoading ? (
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <UserPlus className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Create Account
-                      </>
-                    )}
-                  </Button>
-                </form>
-
-                {/* Divider */}
-                <div className="relative my-4 sm:my-6">
-                  <div className="absolute inset-0 flex items-center">
-                    <span className="w-full border-t border-slate-600" />
-                  </div>
-                  <div className="relative flex justify-center text-sm">
-                    <span className="bg-slate-900 px-4 text-gray-400">Already have an account?</span>
                   </div>
                 </div>
 
-                {/* Login Link */}
-                <Link href="/auth/login">
-                  <Button 
-                    variant="outline"
-                    className="w-full h-11 sm:h-12 text-base sm:text-lg font-semibold rounded-xl border-2 border-slate-600 text-gray-300 hover:bg-slate-800 hover:text-white hover:border-slate-500 transition-all duration-300"
-                  >
-                    Sign In Instead
-                  </Button>
-                </Link>
-              </CardContent>
-            </>
-          ) : (
-            <>
-              {/* Phone Verification Step */}
-              <CardHeader className="text-center p-4 sm:p-6">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl sm:rounded-3xl bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
-                </div>
-                
-                <CardTitle className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-green-300 to-blue-300 bg-clip-text text-transparent">
-                  Verify Phone
-                </CardTitle>
-                <CardDescription className="text-gray-400 text-base sm:text-lg">
-                  Enter the code sent to {formData.phoneNumber}
-                </CardDescription>
-              </CardHeader>
-
-              <CardContent className="p-4 sm:p-6">
-                <form onSubmit={handleVerification} className="space-y-4 sm:space-y-6">
-                  {error && (
-                    <div className="p-3 sm:p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                      {error}
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-300">
-                      Verification Code
-                    </label>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Phone Number</label>
+                  <div className="relative">
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
                     <Input
-                      type="text"
-                      placeholder="Enter 6-digit code"
-                      value={verificationCode}
-                      onChange={(e) => setVerificationCode(e.target.value)}
-                      className="h-11 sm:h-12 text-base sm:text-lg text-center bg-slate-800/50 border-slate-600 focus:border-green-400 text-white placeholder-gray-400"
-                      maxLength={6}
+                      name="phoneNumber"
+                      type="tel"
+                      placeholder="12345678"
+                      value={formData.phoneNumber}
+                      onChange={handleInputChange}
+                      className="pl-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
                       required
                     />
                   </div>
+                  <p className="text-xs text-gray-400">Enter 8-digit phone number</p>
+                </div>
 
-                  <Button 
-                    type="submit" 
-                    disabled={isLoading}
-                    className="w-full h-11 sm:h-12 text-base sm:text-lg font-semibold rounded-xl bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 transform hover:scale-105 transition-all duration-300 shadow-xl"
-                  >
-                    {isLoading ? (
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <CheckCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
-                        Verify & Complete
-                      </>
-                    )}
-                  </Button>
-
-                  <div className="text-center">
-                    <button
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      name="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      className="pl-10 pr-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                      required
+                    />
+                    <Button
                       type="button"
-                      onClick={resendCode}
-                      className="text-green-400 hover:text-green-300 transition-colors text-sm"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-white"
+                      onClick={() => setShowPassword(!showPassword)}
                     >
-                      Didn't receive code? Resend
-                    </button>
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
                   </div>
-                </form>
-              </CardContent>
-            </>
-          )}
-        </Card>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-300">Confirm Password</label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      name="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="Confirm password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className="pl-10 pr-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                      required
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-white"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Creating Account...
+                    </div>
+                  ) : (
+                    <>
+                      <UserPlus className="mr-2 h-5 w-5" />
+                      Create Account
+                    </>
+                  )}
+                </Button>
+              </form>
+
+              <div className="text-center">
+                <p className="text-gray-400">
+                  Already have an account?{" "}
+                  <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                    Sign in
+                  </Link>
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
-} 
+}

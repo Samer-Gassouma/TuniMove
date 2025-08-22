@@ -7,87 +7,20 @@ import { Users, LogOut, MapPin, Clock, CreditCard, User, Settings, Menu } from "
 import ParticleBackground from "@/components/ParticleBackground";
 import RecentActivity from "@/components/RecentActivity";
 import { useRouter } from "next/navigation";
-
-interface User {
-  id: string;
-  firstName: string;
-  lastName: string;
-  phoneNumber: string;
-  email?: string;
-  isPhoneVerified: boolean;
-}
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function DashboardPage() {
-  const [user, setUser] = useState<User | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const router = useRouter();
+  const { user, loading, isAuthenticated, logout } = useAuth();
 
   useEffect(() => {
-    const verifyAndLoadUser = async () => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
-      
-      if (!token) {
-        console.log('🔒 No token found, redirecting to login');
-        router.push('/auth/login');
-        return;
-      }
+    if (!loading && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [loading, isAuthenticated, router]);
 
-      // If we have cached user data and it's valid, use it
-      if (userData && userData !== 'null' && userData !== 'undefined') {
-        try {
-          const parsedUser = JSON.parse(userData);
-          if (parsedUser && typeof parsedUser === 'object') {
-            setUser(parsedUser);
-            return;
-          }
-        } catch (error) {
-          console.warn('⚠️ Invalid cached user data, verifying token...');
-        }
-      }
-
-      // Verify token with backend
-      try {
-        const response = await fetch('/api/v1/users/verify-token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ token }),
-        });
-
-        const result = await response.json();
-
-        if (response.ok && result.success && result.data?.user) {
-          const verifiedUser = result.data.user;
-          localStorage.setItem('user', JSON.stringify(verifiedUser));
-          setUser(verifiedUser);
-          console.log('✅ Token verified, user loaded');
-        } else {
-          throw new Error(result.message || 'Token verification failed');
-        }
-      } catch (error) {
-        console.error('❌ Token verification failed:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        router.push('/auth/login');
-      }
-    };
-
-    verifyAndLoadUser();
-  }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    // Clear cookie as well
-    document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-    console.log('🔒 User logged out');
-    router.push('/');
-  };
-
-  if (!user) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="w-8 h-8 border-2 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
@@ -95,7 +28,9 @@ export default function DashboardPage() {
     );
   }
 
-  return (
+  if (!user || !isAuthenticated) {
+    return null; // Will redirect via useEffect
+  }  return (
     <div className="min-h-screen relative bg-black">
       {/* Particle Background */}
       <div className="fixed inset-0 z-0">
@@ -134,14 +69,14 @@ export default function DashboardPage() {
                   Profile
                 </Button>
                 
-                <Button 
-                  onClick={handleLogout}
-                  variant="outline"
-                  className="border-slate-600 text-gray-700 hover:bg-slate-800 hover:text-white"
-                >
-                  <LogOut className="w-4 h-4 mr-2" />
-                  Logout
-                </Button>
+                                  <Button
+                    onClick={logout}
+                    variant="ghost"
+                    className="flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-slate-700 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </Button>
               </div>
 
               {/* Mobile Menu Button */}
@@ -172,7 +107,7 @@ export default function DashboardPage() {
                 
                 <Button 
                   onClick={() => {
-                    handleLogout();
+                    logout();
                     setMobileMenuOpen(false);
                   }}
                   variant="outline"

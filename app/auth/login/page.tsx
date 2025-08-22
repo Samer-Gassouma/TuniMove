@@ -8,6 +8,7 @@ import { Eye, EyeOff, LogIn, Phone, Lock } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/hooks/useAuth";
 
 export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,50 +27,22 @@ export default function LoginPage() {
     try {
       console.log('🔐 Attempting login with:', { phoneNumber, password: '***' });
       
-      const response = await fetch('/api/v1/users/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          phoneNumber,
-          password,
-        }),
-      });
+      const result = await login(phoneNumber, password);
 
-      console.log('📡 Login response status:', response.status);
-      
-      const data = await response.json();
-      console.log('📄 Login response data:', data);
-
-      if (response.ok) {
-        // Handle both possible response formats
-        const token = data.data?.token || data.token;
-        const user = data.data?.user || data.user;
+      if (result.success) {
+        console.log('✅ Login successful, redirecting to dashboard');
         
-        if (token && user) {
-          // Store token and user data
-          localStorage.setItem('token', token);
-          localStorage.setItem('user', JSON.stringify(user));
-          
-          // Set cookie for middleware
-          document.cookie = `token=${token}; path=/; max-age=${30 * 24 * 60 * 60}`; // 30 days
-          
-          console.log('✅ Login successful, redirecting to dashboard');
-          
-          // Redirect to dashboard
-          router.push('/dashboard');
-        } else {
-          console.error('❌ Invalid response format:', data);
-          setError('Invalid login response format');
-        }
+        // Force a full page reload to ensure middleware picks up the cookie
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 100);
       } else {
-        console.error('❌ Login failed:', data);
-        setError(data.message || data.error || 'Login failed');
+        console.error('❌ Login failed:', result.error);
+        setError(result.error || 'Login failed');
       }
     } catch (error) {
-      console.error('❌ Network error during login:', error);
-      setError('Network error. Please try again.');
+      console.error('❌ Unexpected error during login:', error);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setIsLoading(false);
     }

@@ -12,7 +12,10 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '');
 
+  // Debug: Log all cookies
+  const allCookies = Array.from(request.cookies.getAll());
   console.log(`🛡️ Middleware: ${pathname}, Token: ${token ? 'Present' : 'None'}`);
+  console.log(`🍪 All cookies:`, allCookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
 
   // If user has token and tries to access auth pages, redirect to dashboard
   if (token && authRoutes.some(route => pathname.startsWith(route))) {

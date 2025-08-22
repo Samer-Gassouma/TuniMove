@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Mapbox GL CSS */
+@import 'mapbox-gl/dist/mapbox-gl.css';
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -165,6 +168,37 @@
   .animation-delay-400 {
     animation-delay: 400ms;
   }
+}
+
+/* Mapbox GL overrides for dark theme */
+.mapboxgl-popup {
+  z-index: 1000;
+}
+
+.mapboxgl-popup-content {
+  background: rgba(30, 41, 59, 0.95) !important;
+  color: white !important;
+  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+
+.mapboxgl-popup-tip {
+  border-top-color: rgba(30, 41, 59, 0.95) !important;
+}
+
+.mapboxgl-ctrl-group {
+  background: rgba(30, 41, 59, 0.95) !important;
+  border: 1px solid rgba(71, 85, 105, 0.5) !important;
+}
+
+.mapboxgl-ctrl button {
+  background: transparent !important;
+  color: white !important;
+}
+
+.mapboxgl-ctrl button:hover {
+  background: rgba(71, 85, 105, 0.5) !important;
 }
 
 @keyframes slideUp {

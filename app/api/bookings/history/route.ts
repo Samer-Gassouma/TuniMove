@@ -5,6 +5,8 @@ export async function GET(request: NextRequest) {
     // Get authorization header from request
     const authorization = request.headers.get('Authorization');
     
+    console.log('🔐 Booking history - Authorization header:', authorization ? `${authorization.substring(0, 20)}...` : 'None');
+    
     if (!authorization) {
       return NextResponse.json(
         { 
@@ -33,6 +35,8 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       console.error('❌ Central server booking history error:', result);
+      console.error('❌ Response status:', response.status);
+      console.error('❌ Authorization header sent:', authorization ? `${authorization.substring(0, 30)}...` : 'None');
       return NextResponse.json(result, { status: response.status });
     }
 

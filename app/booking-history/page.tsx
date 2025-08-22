@@ -21,18 +21,38 @@ import {
   RefreshCw
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
+import { apiClient } from "@/lib/api";
+import dynamic from "next/dynamic";
+
+const StationMap = dynamic(() => import("@/components/map/StationMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-64 bg-black/20 rounded-lg flex items-center justify-center">
+      <div className="text-gray-400">Loading map...</div>
+    </div>
+  )
+});
 
 interface Station {
   id: string;
   name: string;
   governorate: string;
   delegation: string;
+  latitude?: number;
+  longitude?: number;
+}
+
+interface StationCoordinates {
+  [stationId: string]: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 interface Booking {
   id: string;
   verificationCode: string;
-  status: 'PAID' | 'PENDING' | 'FAILED' | 'CANCELLED';
+  status: 'PAID' | 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
   seatsBooked: number;
   totalAmount: number;
   journeyDate: string;
@@ -47,7 +67,38 @@ export default function BookingHistoryPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [stationCoordinates, setStationCoordinates] = useState<StationCoordinates>({});
   const router = useRouter();
+
+  const fetchStationCoordinates = async () => {
+    try {
+      console.log('🗺️ Fetching station coordinates...');
+      
+      const response = await fetch('http://localhost:5000/api/v1/stations');
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch stations');
+      }
+      
+      const result = await response.json();
+      
+      if (result.success && result.data?.stations) {
+        const coordinates: StationCoordinates = {};
+        result.data.stations.forEach((station: any) => {
+          coordinates[station.id] = {
+            latitude: station.latitude,
+            longitude: station.longitude
+          };
+        });
+        setStationCoordinates(coordinates);
+        console.log('✅ Station coordinates loaded:', Object.keys(coordinates).length, 'stations');
+      }
+    } catch (error) {
+      console.error('❌ Error fetching station coordinates:', error);
+      // Fallback to default coordinates if API fails
+      console.log('🔄 Using fallback coordinates');
+    }
+  };
 
   const fetchBookingHistory = async () => {
     setLoading(true);
@@ -60,23 +111,15 @@ export default function BookingHistoryPage() {
         return;
       }
 
-      console.log('📋 Fetching booking history...');
+      console.log('📋 Fetching booking history with API client...');
 
-      const response = await fetch('/api/bookings/history', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await apiClient.getBookingHistory();
 
-      const result = await response.json();
-
-      if (response.ok && result.success) {
-        setBookings(result.data?.bookings || []);
-        console.log('✅ Booking history loaded:', result.data?.bookings?.length || 0, 'bookings');
+      if (response.success && response.data) {
+        setBookings(response.data.bookings || []);
+        console.log('✅ Booking history loaded:', response.data.bookings?.length || 0, 'bookings');
       } else {
-        throw new Error(result.message || 'Failed to fetch booking history');
+        throw new Error(response.error || 'Failed to fetch booking history');
       }
     } catch (error: any) {
       console.error('❌ Error fetching booking history:', error);
@@ -87,13 +130,30 @@ export default function BookingHistoryPage() {
   };
 
   useEffect(() => {
-    fetchBookingHistory();
+    const loadData = async () => {
+      await Promise.all([
+        fetchBookingHistory(),
+        fetchStationCoordinates()
+      ]);
+    };
+    
+    loadData();
   }, []);
+
+  const getStationCoordinates = (stationId: string) => {
+    const coords = stationCoordinates[stationId];
+    return coords || {
+      latitude: 35.8256, // Fallback coordinates (center of Tunisia)
+      longitude: 10.6340
+    };
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PAID':
         return 'bg-green-500/20 border-green-500/40 text-green-400';
+      case 'COMPLETED':
+        return 'bg-blue-500/20 border-blue-500/40 text-blue-400';
       case 'PENDING':
         return 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400';
       case 'FAILED':
@@ -108,6 +168,8 @@ export default function BookingHistoryPage() {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'PAID':
+        return <CheckCircle2 className="w-4 h-4" />;
+      case 'COMPLETED':
         return <CheckCircle2 className="w-4 h-4" />;
       case 'PENDING':
         return <Clock3 className="w-4 h-4" />;
@@ -173,7 +235,7 @@ export default function BookingHistoryPage() {
                 <History className="w-8 h-8 text-blue-400" />
                 Booking History
               </h1>
-              <p className="text-gray-400">View all your trip bookings</p>
+              <p className="text-gray-400">View all your trip bookings • Click on any booking to see details</p>
             </div>
           </div>
           
@@ -221,12 +283,16 @@ export default function BookingHistoryPage() {
         ) : (
           <div className="space-y-4">
             {bookings.map((booking) => (
-              <Card key={booking.id} className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50 hover:border-slate-500/50 transition-colors">
+              <Card 
+                key={booking.id} 
+                className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 cursor-pointer group"
+                onClick={() => router.push(`/booking-details/${booking.paymentReference || booking.id}`)}
+              >
                 <CardHeader className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div>
                       <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-lg text-white">
+                        <CardTitle className="text-lg text-white group-hover:text-blue-400 transition-colors">
                           {booking.departureStation.name} → {booking.destinationStation.name}
                         </CardTitle>
                         <Badge variant="outline" className={`${getStatusColor(booking.status)} text-xs`}>
@@ -246,7 +312,7 @@ export default function BookingHistoryPage() {
                 </CardHeader>
 
                 <CardContent className="p-4 sm:p-6 pt-0">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     {/* Journey Date */}
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-blue-400" />
@@ -292,7 +358,7 @@ export default function BookingHistoryPage() {
                   </div>
 
                   {/* Route Details */}
-                  <div className="mt-4 p-3 bg-black/20 rounded-lg">
+                  <div className="mb-4 p-3 bg-black/20 rounded-lg">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <MapPin className="w-4 h-4 text-blue-400" />
@@ -306,6 +372,82 @@ export default function BookingHistoryPage() {
                         <MapPin className="w-4 h-4 text-purple-400" />
                       </div>
                     </div>
+                  </div>
+
+                  {/* Compact Route Map */}
+                  <div className="mb-4">
+                    <div className="h-32 rounded-lg overflow-hidden border border-slate-600/30">
+                      <StationMap
+                        stations={[
+                          {
+                            id: booking.departureStation.id,
+                            name: booking.departureStation.name,
+                            governorate: booking.departureStation.governorate,
+                            delegation: booking.departureStation.delegation || '',
+                            latitude: getStationCoordinates(booking.departureStation.id).latitude,
+                            longitude: getStationCoordinates(booking.departureStation.id).longitude,
+                            isOnline: true
+                          }
+                        ]}
+                        destinations={[
+                          {
+                            destinationId: booking.destinationStation.id,
+                            destinationName: booking.destinationStation.name,
+                            governorate: booking.destinationStation.governorate,
+                            delegation: booking.destinationStation.delegation || '',
+                            totalVehicles: 1,
+                            availableSeats: booking.seatsBooked,
+                            estimatedDeparture: booking.journeyDate,
+                            basePrice: parseFloat(String(booking.totalAmount || '0')),
+                            vehicles: [],
+                            latitude: getStationCoordinates(booking.destinationStation.id).latitude,
+                            longitude: getStationCoordinates(booking.destinationStation.id).longitude
+                          }
+                        ]}
+                        selectedDeparture={{
+                          id: booking.departureStation.id,
+                          name: booking.departureStation.name,
+                          governorate: booking.departureStation.governorate,
+                          delegation: booking.departureStation.delegation || '',
+                          latitude: getStationCoordinates(booking.departureStation.id).latitude,
+                          longitude: getStationCoordinates(booking.departureStation.id).longitude,
+                          isOnline: true
+                        }}
+                        selectedDestination={{
+                          destinationId: booking.destinationStation.id,
+                          destinationName: booking.destinationStation.name,
+                          governorate: booking.destinationStation.governorate,
+                          delegation: booking.destinationStation.delegation || '',
+                          totalVehicles: 1,
+                          availableSeats: booking.seatsBooked,
+                          estimatedDeparture: booking.journeyDate,
+                          basePrice: parseFloat(String(booking.totalAmount || '0')),
+                          vehicles: [],
+                          latitude: getStationCoordinates(booking.destinationStation.id).latitude,
+                          longitude: getStationCoordinates(booking.destinationStation.id).longitude
+                        }}
+                        onStationSelect={() => {}} // Disabled in view mode
+                        onDestinationSelect={() => {}} // Disabled in view mode
+                        showRoute={true}
+                        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''}
+                      />
+                    </div>
+                  </div>
+
+                  {/* View Details Button */}
+                  <div className="flex justify-end">
+                    <Button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/booking-details/${booking.paymentReference || booking.id}`);
+                      }}
+                      variant="outline"
+                      size="sm"
+                      className="border-blue-600 text-blue-400 hover:bg-blue-600/10 group-hover:border-blue-500"
+                    >
+                      View Details
+                      <Navigation className="w-3 h-3 ml-1" />
+                    </Button>
                   </div>
                 </CardContent>
               </Card>

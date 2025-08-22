@@ -34,6 +34,7 @@ interface RecentBooking {
   createdAt: string;
   departureStation: Station;
   destinationStation: Station;
+  paymentReference?: string;
 }
 
 export default function RecentActivity() {
@@ -146,10 +147,13 @@ export default function RecentActivity() {
     <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
       <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
-            <Activity className="w-5 h-5 text-blue-400" />
-            Recent Activity
-          </CardTitle>
+          <div>
+            <CardTitle className="text-lg sm:text-xl text-white flex items-center gap-2">
+              <Activity className="w-5 h-5 text-blue-400" />
+              Recent Activity
+            </CardTitle>
+            <p className="text-xs text-gray-500 mt-1">Click on any booking to view details</p>
+          </div>
           <Button
             variant="ghost"
             size="sm"
@@ -186,7 +190,7 @@ export default function RecentActivity() {
               <div
                 key={booking.id}
                 className="p-3 rounded-lg bg-black/20 hover:bg-black/30 transition-colors cursor-pointer"
-                onClick={() => router.push('/booking-history')}
+                onClick={() => router.push(`/booking-details/${booking.paymentReference || booking.id}`)}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">

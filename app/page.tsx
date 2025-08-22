@@ -20,7 +20,7 @@ export default function Home() {
 
   const handleStationRequest = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Station request:", { stationName, stationEmail });
+    router.push('/station-partnership');
   };
 
   const scrollToSection = (section: 'user' | 'station') => {
@@ -110,7 +110,7 @@ export default function Home() {
 
               <Button 
                 size="lg" 
-                onClick={() => scrollToSection('station')}
+                onClick={() => router.push('/station-partnership')}
                 className="group bg-gradient-to-r from-green-600 to-teal-600 hover:from-green-700 hover:to-teal-700 text-white px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-semibold rounded-xl shadow-2xl hover:shadow-green-500/25 transform hover:scale-105 transition-all duration-300 w-full sm:w-auto"
               >
                 <Building2 className="mr-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -450,6 +450,13 @@ export default function Home() {
               <Sparkles className="mr-2 h-6 w-6" />
               Get Started Today
             </Button>
+              <Button
+                onClick={() => router.push('/station-partnership')}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-10 py-4 text-lg font-semibold rounded-xl shadow-2xl hover:shadow-purple-500/25 transform hover:scale-105 transition-all duration-300"
+              >
+                <Sparkles className="mr-2 h-6 w-6" />
+                Get Started Today
+              </Button>
           </div>
       </footer>
       </div>

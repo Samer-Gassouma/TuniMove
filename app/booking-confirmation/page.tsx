@@ -11,8 +11,16 @@ import ParticleBackground from "@/components/ParticleBackground";
 interface BookingDetails {
   id: string;
   status: 'CONFIRMED' | 'FAILED' | 'PENDING';
-  departureStation: string;
-  destinationStation: string;
+  departureStation: {
+    name: string;
+    governorate: string;
+    delegation?: string;
+  };
+  destinationStation: {
+    name: string;
+    governorate: string;
+    delegation?: string;
+  };
   seatsBooked: number;
   journeyDate: string;
   totalAmount: number;
@@ -20,6 +28,30 @@ interface BookingDetails {
   verificationCode?: string;
   paymentProcessedAt?: string;
   createdAt?: string;
+  user?: {
+    firstName?: string;
+    lastName?: string;
+    phoneNumber?: string;
+  };
+  vehicleAllocations?: Array<{
+    vehicleId?: string;
+    licensePlate: string;
+    driverName?: string;
+    driverPhone?: string;
+    seatsBooked: number;
+    queuePosition?: number;
+    estimatedDeparture?: string;
+    ticketIds?: string[];
+  }>;
+  summary?: {
+    totalSeats: number;
+    totalAmount: number;
+    vehicleCount: number;
+    isPaid: boolean;
+    departureLocation: string;
+    destinationLocation: string;
+    journeyDate: string;
+  };
 }
 
 export default function BookingConfirmationPage() {
@@ -56,15 +88,26 @@ export default function BookingConfirmationPage() {
           const bookingDetails: BookingDetails = {
             id: booking.id,
             status: booking.status === 'PAID' ? 'CONFIRMED' : booking.status === 'FAILED' ? 'FAILED' : 'PENDING',
-            departureStation: booking.departureStation?.name || 'Unknown Station',
-            destinationStation: booking.destinationStation?.name || 'Unknown Station',
+            departureStation: {
+              name: booking.departureStation?.name || 'Unknown Station',
+              governorate: booking.departureStation?.governorate || 'Unknown',
+              delegation: booking.departureStation?.delegation
+            },
+            destinationStation: {
+              name: booking.destinationStation?.name || 'Unknown Station', 
+              governorate: booking.destinationStation?.governorate || 'Unknown',
+              delegation: booking.destinationStation?.delegation
+            },
             seatsBooked: booking.seatsBooked,
             journeyDate: booking.journeyDate,
             totalAmount: booking.totalAmount,
             paymentRef: booking.paymentReference,
             verificationCode: booking.verificationCode,
             paymentProcessedAt: booking.paymentProcessedAt,
-            createdAt: booking.createdAt
+            createdAt: booking.createdAt,
+            user: booking.user,
+            vehicleAllocations: booking.vehicleAllocations || [],
+            summary: result.data.summary
           };
           
           console.log('✅ Booking details loaded:', bookingDetails);
@@ -75,8 +118,14 @@ export default function BookingConfirmationPage() {
           const mockBooking: BookingDetails = {
             id: paymentRef || `booking_${Date.now()}`,
             status: status === 'completed' ? 'CONFIRMED' : status === 'failed' ? 'FAILED' : 'PENDING',
-            departureStation: 'Monastir Main Station',
-            destinationStation: 'Sfax Main Station',
+            departureStation: {
+              name: 'Monastir Main Station',
+              governorate: 'Monastir'
+            },
+            destinationStation: {
+              name: 'Sfax Main Station', 
+              governorate: 'Sfax'
+            },
             seatsBooked: 2,
             journeyDate: new Date().toISOString(),
             totalAmount: 25.00,
@@ -90,8 +139,14 @@ export default function BookingConfirmationPage() {
         const mockBooking: BookingDetails = {
           id: paymentRef || `booking_${Date.now()}`,
           status: status === 'completed' ? 'CONFIRMED' : status === 'failed' ? 'FAILED' : 'PENDING',
-          departureStation: 'Monastir Main Station',
-          destinationStation: 'Sfax Main Station',
+          departureStation: {
+            name: 'Monastir Main Station',
+            governorate: 'Monastir'
+          },
+          destinationStation: {
+            name: 'Sfax Main Station',
+            governorate: 'Sfax'  
+          },
           seatsBooked: 2,
           journeyDate: new Date().toISOString(),
           totalAmount: 25.00,
@@ -206,7 +261,7 @@ export default function BookingConfirmationPage() {
                   Route
                 </span>
                 <span className="text-white">
-                  {bookingDetails.departureStation} → {bookingDetails.destinationStation}
+                  {bookingDetails.departureStation.name} → {bookingDetails.destinationStation.name}
                 </span>
               </div>
               
@@ -252,6 +307,160 @@ export default function BookingConfirmationPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Vehicle Details Section */}
+        {bookingDetails.vehicleAllocations && bookingDetails.vehicleAllocations.length > 0 && (
+          <Card className="mb-6 backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <Navigation className="w-5 h-5" />
+                Vehicle Details
+              </CardTitle>
+              <CardDescription className="text-gray-400">
+                Your allocated vehicles and driver information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                {bookingDetails.vehicleAllocations.map((vehicle, index) => (
+                  <div key={index} className="p-4 bg-black/20 rounded-lg border border-slate-600/30">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-lg font-semibold text-white">Vehicle {index + 1}</h4>
+                      <Badge variant="outline" className="bg-blue-500/20 border-blue-500/40 text-blue-400">
+                        {vehicle.seatsBooked} seat{vehicle.seatsBooked > 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">License Plate</span>
+                        <span className="text-white font-mono font-bold">{vehicle.licensePlate}</span>
+                      </div>
+                      
+                      {vehicle.driverName && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Driver</span>
+                          <span className="text-white">{vehicle.driverName}</span>
+                        </div>
+                      )}
+                      
+                      {vehicle.driverPhone && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Driver Phone</span>
+                          <span className="text-white font-mono">{vehicle.driverPhone}</span>
+                        </div>
+                      )}
+                      
+                      {vehicle.queuePosition && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Queue Position</span>
+                          <span className="text-white">#{vehicle.queuePosition}</span>
+                        </div>
+                      )}
+                      
+                      {vehicle.estimatedDeparture && (
+                        <div className="flex items-center justify-between sm:col-span-2">
+                          <span className="text-gray-400 flex items-center gap-2">
+                            <Timer className="w-4 h-4" />
+                            Estimated Departure
+                          </span>
+                          <span className="text-white">
+                            {new Date(vehicle.estimatedDeparture).toLocaleTimeString()}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {vehicle.ticketIds && vehicle.ticketIds.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-slate-600/30">
+                        <span className="text-gray-400 text-sm">Ticket IDs:</span>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {vehicle.ticketIds.map((ticketId, ticketIndex) => (
+                            <span key={ticketIndex} className="text-xs font-mono bg-slate-700/50 px-2 py-1 rounded text-gray-300">
+                              {ticketId}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Trip Summary Section */}
+        {bookingDetails.summary && (
+          <Card className="mb-6 backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-2">
+                <CreditCard className="w-5 h-5" />
+                Trip Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                  <span className="text-gray-400">From</span>
+                  <span className="text-white text-right">{bookingDetails.summary.departureLocation}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                  <span className="text-gray-400">To</span>
+                  <span className="text-white text-right">{bookingDetails.summary.destinationLocation}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                  <span className="text-gray-400">Total Vehicles</span>
+                  <span className="text-white">{bookingDetails.summary.vehicleCount}</span>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 bg-black/20 rounded-lg">
+                  <span className="text-gray-400">Journey Date</span>
+                  <span className="text-white">
+                    {new Date(bookingDetails.summary.journeyDate).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Important Information */}
+        {isConfirmed && (
+          <Card className="mb-6 backdrop-blur-xl bg-gradient-to-br from-green-800/20 to-green-900/20 border border-green-600/50">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold text-green-400 mb-3 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                Important Information
+              </h3>
+              <ul className="space-y-2 text-gray-300">
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-1">•</span>
+                  Please arrive at the departure station at least 15 minutes before your scheduled departure.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-1">•</span>
+                  Show your verification code <strong className="text-white">{bookingDetails.verificationCode}</strong> to the driver.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-green-400 mt-1">•</span>
+                  Keep your payment reference for your records: <strong className="text-white font-mono">{bookingDetails.paymentRef}</strong>
+                </li>
+                {bookingDetails.vehicleAllocations && bookingDetails.vehicleAllocations.length > 0 && (
+                  <li className="flex items-start gap-2">
+                    <span className="text-green-400 mt-1">•</span>
+                    Look for vehicle{bookingDetails.vehicleAllocations.length > 1 ? 's' : ''}: {' '}
+                    <strong className="text-white">
+                      {bookingDetails.vehicleAllocations.map(v => v.licensePlate).join(', ')}
+                    </strong>
+                  </li>
+                )}
+              </ul>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row gap-4">
