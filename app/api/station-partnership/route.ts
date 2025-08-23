@@ -10,6 +10,7 @@ export async function POST(req: NextRequest) {
       lastName,
       email,
       phoneNumber,
+      cin,
       governorate,
       delegation,
       latitude,
@@ -17,7 +18,7 @@ export async function POST(req: NextRequest) {
     } = body
 
     // Validate required fields
-    if (!firstName || !lastName || !email || !phoneNumber || !governorate || !delegation) {
+    if (!firstName || !lastName || !email || !phoneNumber || !cin || !governorate || !delegation) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -34,6 +35,7 @@ export async function POST(req: NextRequest) {
       last_name: lastName,
       email: email,
       phone_number: phoneNumber,
+      cin: cin,
       governorate: governorate,
       delegation: delegation,
       latitude: latitude,

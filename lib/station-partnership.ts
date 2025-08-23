@@ -115,14 +115,25 @@ export class StationPartnershipService {
   }
 
   // Update request status
-  static async updateRequestStatus(requestNumber: string, status: 'pending' | 'approved' | 'rejected') {
+  static async updateRequestStatus(
+    requestNumber: string, 
+    status: 'pending' | 'approved' | 'rejected',
+    rejectionReason?: string
+  ) {
     try {
+      const updateData: any = { 
+        status,
+        updated_at: new Date().toISOString()
+      }
+
+      // Add rejection reason if status is rejected and reason is provided
+      if (status === 'rejected' && rejectionReason) {
+        updateData.rejection_reason = rejectionReason
+      }
+
       const { data, error } = await supabase
         .from(TABLES.STATION_PARTNERSHIP_REQUESTS)
-        .update({ 
-          status,
-          updated_at: new Date().toISOString()
-        })
+        .update(updateData)
         .eq('request_number', requestNumber)
         .select()
         .single()

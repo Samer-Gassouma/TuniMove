@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TuniMove - Smart Transportation Network",
-  description: "Connect with Tunisia's smart transportation network. Join as a passenger or station partner.",
+  title: "Louaj - Public Transportation Management System",
+  description: "The future of transportation is here. Connect, travel, and transform how Tunisia moves with our intelligent network.",
 };
 
 export default function RootLayout({

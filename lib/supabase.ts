@@ -13,6 +13,7 @@ export interface StationPartnershipRequest {
   last_name: string
   email: string
   phone_number: string
+  cin: string
   governorate: string
   delegation: string
   latitude?: number
@@ -20,6 +21,7 @@ export interface StationPartnershipRequest {
   cin_front_url?: string
   cin_back_url?: string
   status: 'pending' | 'approved' | 'rejected'
+  rejection_reason?: string
   created_at?: string
   updated_at?: string
 }

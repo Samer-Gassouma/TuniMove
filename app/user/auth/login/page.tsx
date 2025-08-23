@@ -8,7 +8,7 @@ import { Eye, EyeOff, LogIn, Phone, Lock } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useUserAuth } from "@/lib/hooks/useUserAuth";
 
 export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -17,7 +17,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { login } = useAuth();
+  const { login } = useUserAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +34,7 @@ export default function LoginPage() {
         
         // Force a full page reload to ensure middleware picks up the cookie
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          window.location.href = '/user/dashboard';
         }, 100);
       } else {
         console.error('❌ Login failed:', result.error);
@@ -153,7 +153,7 @@ export default function LoginPage() {
             </div>
 
             {/* Register Link */}
-            <Link href="/auth/register">
+            <Link href="/user/auth/register">
               <Button 
                 variant="outline"
                 className="w-full h-11 sm:h-12 text-base sm:text-lg font-semibold rounded-xl border-2 border-slate-600 text-gray-300 hover:bg-slate-800 hover:text-white hover:border-slate-500 transition-all duration-300"

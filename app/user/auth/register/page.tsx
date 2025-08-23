@@ -8,7 +8,7 @@ import { Eye, EyeOff, UserPlus, User, Phone, Lock } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useUserAuth } from "@/lib/hooks/useUserAuth";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -23,7 +23,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  const { register } = useAuth();
+  const { register } = useUserAuth();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -76,7 +76,7 @@ export default function RegisterPage() {
         
         // Force a full page reload to ensure middleware picks up the cookie
         setTimeout(() => {
-          window.location.href = '/dashboard';
+          window.location.href = '/user/dashboard';
         }, 100);
       } else {
         console.error('❌ Registration failed:', result.error);
@@ -240,7 +240,7 @@ export default function RegisterPage() {
               <div className="text-center">
                 <p className="text-gray-400">
                   Already have an account?{" "}
-                  <Link href="/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
+                  <Link href="/user/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
                     Sign in
                   </Link>
                 </p>

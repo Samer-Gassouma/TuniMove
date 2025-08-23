@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Navigation, Loader, CheckCircle2, CreditCard, User, ArrowRight, Car, Timer, AlertCircle, Zap } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Navigation, Loader, CheckCircle2, CreditCard, User, ArrowRight, Car, Timer, AlertCircle, Zap, Route, Building2, Train } from "lucide-react";
 import { apiClient } from "@/lib/api";
 import StationMap from "@/components/map/StationMap";
 import stationService from "@/lib/station-service";
@@ -148,7 +148,7 @@ export default function StepByStepBooking() {
 
   // Check authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('userToken');
     setIsAuthenticated(!!token);
     
     // Load online stations on mount
@@ -422,58 +422,70 @@ export default function StepByStepBooking() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+    <div className="min-h-screen bg-black">
       {/* Header */}
-      <header className="border-b border-slate-700/50 bg-slate-900/20 backdrop-blur-xl">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-4 py-6">
+      <header className="border-b border-white/10 bg-white/5 backdrop-blur-xl">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-6 py-8">
             <Button
               onClick={currentStep === 'departure' ? undefined : goBack}
               variant="outline"
               size="sm"
-              className="border-slate-600 text-gray-300 hover:bg-slate-800 hover:text-white"
+              className="border-white/20 text-white hover:bg-white/10 hover:border-white/30 transition-all duration-200"
             >
               <ArrowLeft className="w-4 h-4" />
             </Button>
 
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-white">{getStepTitle()}</h1>
-              <p className="text-gray-400">{getStepDescription()}</p>
+              <h1 className="text-3xl font-bold text-white mb-2">{getStepTitle()}</h1>
+              <p className="text-white/60 text-lg">{getStepDescription()}</p>
             </div>
 
-            {/* Step indicator */}
-            <div className="hidden sm:flex items-center gap-2">
-              {['departure', 'destination', 'seats', 'confirm'].map((step, index) => (
-                <div
-                  key={step}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    currentStep === step
-                      ? 'bg-blue-600 text-white'
-                      : index < ['departure', 'destination', 'seats', 'confirm'].indexOf(currentStep)
-                      ? 'bg-green-600 text-white'
-                      : 'bg-slate-700 text-gray-400'
-                  }`}
-                >
-                  {index < ['departure', 'destination', 'seats', 'confirm'].indexOf(currentStep) ? (
-                    <CheckCircle2 className="w-4 h-4" />
-                  ) : (
-                    index + 1
-                  )}
-                </div>
-              ))}
+            {/* Enhanced Step indicator */}
+            <div className="hidden lg:flex items-center gap-3">
+              {['departure', 'destination', 'seats', 'confirm'].map((step, index) => {
+                const stepIndex = ['departure', 'destination', 'seats', 'confirm'].indexOf(currentStep);
+                const isCompleted = index < stepIndex;
+                const isCurrent = currentStep === step;
+                
+                return (
+                  <div key={step} className="flex items-center">
+                    <div
+                      className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
+                        isCurrent
+                          ? 'bg-red-600 text-white shadow-lg shadow-red-600/25'
+                          : isCompleted
+                          ? 'bg-green-600 text-white shadow-lg shadow-green-600/25'
+                          : 'bg-white/10 text-white/40 border border-white/20'
+                      }`}
+                    >
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5" />
+                      ) : (
+                        index + 1
+                      )}
+                    </div>
+                    {index < 3 && (
+                      <div className={`w-8 h-1 mx-2 rounded-full transition-all duration-300 ${
+                        index < stepIndex ? 'bg-green-600' : 'bg-white/20'
+                      }`} />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <Card className="mb-6 border-red-500/50 bg-red-500/10">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-red-400">
-                <AlertCircle className="w-5 h-5" />
-                <span>{error}</span>
+          <Card className="mb-8 border-red-500/30 bg-red-500/5 backdrop-blur-sm">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 text-red-400">
+                <AlertCircle className="w-6 h-6" />
+                <span className="text-lg">{error}</span>
               </div>
             </CardContent>
           </Card>
@@ -481,37 +493,39 @@ export default function StepByStepBooking() {
 
         {/* Step 1: Select Departure Station */}
         {currentStep === 'departure' && (
-          <div className="space-y-6">
-            <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <MapPin className="w-5 h-5 text-blue-400" />
+          <div className="space-y-8">
+            <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl text-white flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                    <Building2 className="w-6 h-6 text-blue-400" />
+                  </div>
                   Choose Your Departure Station
                 </CardTitle>
-                <CardDescription>
-                  Select from {onlineStations?.filter(s => s.isOnline).length || 0} online stations currently accepting passengers
+                <CardDescription className="text-white/60 text-lg">
+                  Select from <span className="text-blue-400 font-semibold">{onlineStations?.filter(s => s.isOnline).length || 0}</span> online stations currently accepting passengers
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {loadingStations ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader className="w-6 h-6 animate-spin text-blue-400 mr-2" />
-                    <span className="text-gray-300">Loading online stations...</span>
+                  <div className="flex items-center justify-center py-16">
+                    <div className="text-center">
+                      <Loader className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-4" />
+                      <span className="text-white/60 text-lg">Loading online stations...</span>
+                    </div>
                   </div>
                 ) : !onlineStations || onlineStations.length === 0 || onlineStations.filter(s => s.isOnline).length === 0 ? (
-                  <div className="text-center py-12">
-                    <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-white mb-2">No Online Stations</h3>
-                    <p className="text-gray-400 mb-4">There are currently no online stations available.</p>
-                    <Button onClick={loadOnlineStations} variant="outline">
+                  <div className="text-center py-16">
+                    <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-white mb-3">No Online Stations</h3>
+                    <p className="text-white/60 mb-6 text-lg">There are currently no online stations available.</p>
+                    <Button onClick={loadOnlineStations} variant="outline" className="border-white/20 text-white hover:bg-white/10">
                       Try Again
                     </Button>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {(onlineStations || []).filter(station => station.isOnline).map((station, index) => {
-                      // More flexible filtering - just check if station exists and has some identifier
                       const stationAny = station as any;
                       if (!station || (!stationAny.id && !stationAny._id && !stationAny.stationId)) {
                         console.warn('Skipping invalid station at index', index, station);
@@ -524,33 +538,33 @@ export default function StepByStepBooking() {
                       return (
                         <Card
                           key={stationId}
-                          className="cursor-pointer hover:bg-slate-700/30 transition-colors border-slate-600/50 bg-slate-800/20"
+                          className="cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all duration-300 border border-white/20 bg-white/5 backdrop-blur-sm group"
                           onClick={() => {
                             console.log('🖱️ Station clicked:', { stationId, stationName, station });
                             handleDepartureSelect(stationId);
                           }}
                         >
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-lg bg-blue-500/20 flex items-center justify-center">
-                              <MapPin className="w-6 h-6 text-blue-400" />
-                            </div>
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-white">{stationName}</h3>
-                              <p className="text-sm text-gray-400">
-                                {typeof station.governorate === 'string' ? station.governorate : station.governorate?.name || 'Unknown'}, {typeof station.delegation === 'string' ? station.delegation : station.delegation?.name || 'Unknown'}
-                              </p>
-                              <div className="flex items-center gap-2 mt-2">
-                                <Badge className="bg-green-600/20 text-green-400 border-green-500/50">
-                                  <Zap className="w-3 h-3 mr-1" />
-                                  Online
-                                </Badge>
+                          <CardContent className="p-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <Building2 className="w-8 h-8 text-blue-400" />
                               </div>
+                              <div className="flex-1">
+                                <h3 className="font-bold text-white text-lg mb-2">{stationName}</h3>
+                                <p className="text-white/60 mb-3">
+                                  {typeof station.governorate === 'string' ? station.governorate : station.governorate?.name || 'Unknown'}, {typeof station.delegation === 'string' ? station.delegation : station.delegation?.name || 'Unknown'}
+                                </p>
+                                <div className="flex items-center gap-2">
+                                  <Badge className="bg-green-600/20 text-green-400 border-green-500/50 px-3 py-1">
+                                    <Zap className="w-3 h-3 mr-2" />
+                                    Online
+                                  </Badge>
+                                </div>
+                              </div>
+                              <ArrowRight className="w-6 h-6 text-white/40 group-hover:text-white/60 transition-colors duration-300" />
                             </div>
-                            <ArrowRight className="w-5 h-5 text-gray-400" />
-                          </div>
-                        </CardContent>
-                      </Card>
+                          </CardContent>
+                        </Card>
                       );
                     }).filter(Boolean)}
                   </div>
@@ -560,13 +574,15 @@ export default function StepByStepBooking() {
 
             {/* Interactive Map */}
             {onlineStations && onlineStations.filter(s => s.isOnline).length > 0 && (
-              <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Navigation className="w-5 h-5 text-blue-400" />
+              <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
+                <CardHeader className="pb-6">
+                  <CardTitle className="text-2xl text-white flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                      <Navigation className="w-6 h-6 text-green-400" />
+                    </div>
                     Interactive Station Map
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-white/60 text-lg">
                     Click on any station marker to select it as your departure point
                   </CardDescription>
                 </CardHeader>
@@ -589,67 +605,71 @@ export default function StepByStepBooking() {
 
         {/* Step 2: Select Destination */}
         {currentStep === 'destination' && selectedDeparture && (
-          <div className="space-y-6">
-            <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Navigation className="w-5 h-5 text-purple-400" />
+          <div className="space-y-8">
+            <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
+              <CardHeader className="pb-6">
+                <CardTitle className="text-2xl text-white flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                    <Route className="w-6 h-6 text-purple-400" />
+                  </div>
                   Available Destinations
                 </CardTitle>
-                <CardDescription>
-                  Departing from <span className="text-blue-400 font-medium">{selectedDeparture.name || selectedDeparture.stationName}</span>
+                <CardDescription className="text-white/60 text-lg">
+                  Departing from <span className="text-blue-400 font-semibold">{selectedDeparture.name || selectedDeparture.stationName}</span>
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="space-y-6">
                 {loadingDestinations ? (
-                  <div className="flex items-center justify-center py-12">
-                    <Loader className="w-6 h-6 animate-spin text-purple-400 mr-2" />
-                    <span className="text-gray-300">Loading destinations...</span>
+                  <div className="flex items-center justify-center py-16">
+                    <div className="text-center">
+                      <Loader className="w-8 h-8 animate-spin text-purple-400 mx-auto mb-4" />
+                      <span className="text-white/60 text-lg">Loading destinations...</span>
+                    </div>
                   </div>
                 ) : !availableDestinations || availableDestinations.length === 0 ? (
-                  <div className="text-center py-12">
-                    <AlertCircle className="w-12 h-12 text-yellow-400 mx-auto mb-4" />
-                    <h3 className="text-lg font-semibold text-white mb-2">No Destinations Available</h3>
-                    <p className="text-gray-400">No vehicles are currently queued from this station.</p>
+                  <div className="text-center py-16">
+                    <AlertCircle className="w-16 h-16 text-yellow-400 mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-white mb-3">No Destinations Available</h3>
+                    <p className="text-white/60 text-lg">No vehicles are currently queued from this station.</p>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                     {(availableDestinations || []).filter(destination => destination && destination.destinationId && destination.destinationName).map((destination) => (
                       <Card
                         key={destination.destinationId}
-                        className="cursor-pointer hover:bg-slate-700/30 transition-colors border-slate-600/50 bg-slate-800/20"
+                        className="cursor-pointer hover:bg-white/10 hover:border-white/30 transition-all duration-300 border border-white/20 bg-white/5 backdrop-blur-sm group"
                         onClick={() => handleDestinationSelect(destination)}
                       >
-                        <CardContent className="p-4">
+                        <CardContent className="p-6">
                           <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-12 h-12 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                                <MapPin className="w-6 h-6 text-purple-400" />
+                            <div className="flex items-center gap-4">
+                              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <MapPin className="w-8 h-8 text-purple-400" />
                               </div>
                               <div>
-                                <h3 className="font-semibold text-white">{destination.destinationName || 'Unknown Destination'}</h3>
-                                <p className="text-sm text-gray-400">
+                                <h3 className="font-bold text-white text-lg mb-2">{destination.destinationName || 'Unknown Destination'}</h3>
+                                <p className="text-white/60 mb-3">
                                   {destination.governorate || 'Unknown'}, {destination.delegation || 'Unknown'}
                                 </p>
-                                <div className="flex items-center gap-4 mt-2">
-                                  <div className="flex items-center gap-1 text-sm">
+                                <div className="flex items-center gap-6">
+                                  <div className="flex items-center gap-2 text-sm">
                                     <Car className="w-4 h-4 text-blue-400" />
-                                    <span className="text-blue-400">{destination.totalVehicles} vehicles</span>
+                                    <span className="text-blue-400 font-medium">{destination.totalVehicles} vehicles</span>
                                   </div>
-                                  <div className="flex items-center gap-1 text-sm">
+                                  <div className="flex items-center gap-2 text-sm">
                                     <Users className="w-4 h-4 text-green-400" />
-                                    <span className="text-green-400">{destination.availableSeats} seats</span>
+                                    <span className="text-green-400 font-medium">{destination.availableSeats} seats</span>
                                   </div>
-                                  <div className="flex items-center gap-1 text-sm">
+                                  <div className="flex items-center gap-2 text-sm">
                                     <Timer className="w-4 h-4 text-orange-400" />
-                                    <span className="text-orange-400">{destination.estimatedDeparture}</span>
+                                    <span className="text-orange-400 font-medium">{destination.estimatedDeparture}</span>
                                   </div>
                                 </div>
                               </div>
                             </div>
                             <div className="text-right">
-                              <div className="text-2xl font-bold text-white">{destination.basePrice} TND</div>
-                              <div className="text-sm text-gray-400">per seat</div>
+                              <div className="text-3xl font-bold text-white mb-1">{destination.basePrice} TND</div>
+                              <div className="text-white/60">per seat</div>
                             </div>
                           </div>
                         </CardContent>
@@ -662,13 +682,15 @@ export default function StepByStepBooking() {
 
             {/* Interactive Map with Destinations */}
             {availableDestinations && availableDestinations.length > 0 && (
-              <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Navigation className="w-5 h-5 text-purple-400" />
+              <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
+                <CardHeader className="pb-6">
+                  <CardTitle className="text-2xl text-white flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
+                      <Navigation className="w-6 h-6 text-purple-400" />
+                    </div>
                     Destination Map
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-white/60 text-lg">
                     Click on destination markers to select your final destination
                   </CardDescription>
                 </CardHeader>
@@ -691,42 +713,52 @@ export default function StepByStepBooking() {
 
         {/* Step 3: Select Seats and Date */}
         {currentStep === 'seats' && selectedDestination && (
-          <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Users className="w-5 h-5 text-green-400" />
+          <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-2xl text-white flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-green-400" />
+                </div>
                 Select Number of Seats
               </CardTitle>
-              <CardDescription>
-                Route: <span className="text-blue-400">{selectedDeparture?.name || selectedDeparture?.stationName}</span> → <span className="text-purple-400">{selectedDestination.destinationName}</span>
+              <CardDescription className="text-white/60 text-lg">
+                Route: <span className="text-blue-400 font-semibold">{selectedDeparture?.name || selectedDeparture?.stationName}</span> → <span className="text-purple-400 font-semibold">{selectedDestination.destinationName}</span>
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
               {loadingRouteDetails ? (
-                <div className="flex items-center justify-center py-12">
-                  <Loader className="w-6 h-6 animate-spin text-green-400 mr-2" />
-                  <span className="text-gray-300">Loading route details...</span>
+                <div className="flex items-center justify-center py-16">
+                  <div className="text-center">
+                    <Loader className="w-8 h-8 animate-spin text-green-400 mx-auto mb-4" />
+                    <span className="text-white/60 text-lg">Loading route details...</span>
+                  </div>
                 </div>
               ) : routeDetails ? (
                 <>
                   {/* Route Summary */}
-                  <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/30">
-                    <CardContent className="p-4">
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                  <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 backdrop-blur-sm">
+                    <CardContent className="p-6">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
                         <div>
-                          <Car className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                          <div className="text-sm text-gray-400">Vehicles</div>
-                          <div className="text-xl font-bold text-white">{routeDetails.totalVehicles}</div>
+                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
+                            <Car className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div className="text-white/60 mb-1">Vehicles</div>
+                          <div className="text-2xl font-bold text-white">{routeDetails.totalVehicles}</div>
                         </div>
                         <div>
-                          <Users className="w-5 h-5 text-green-400 mx-auto mb-1" />
-                          <div className="text-sm text-gray-400">Available Seats</div>
-                          <div className="text-xl font-bold text-green-400">{routeDetails.availableSeats || 0}</div>
+                          <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                            <Users className="w-6 h-6 text-green-400" />
+                          </div>
+                          <div className="text-white/60 mb-1">Available Seats</div>
+                          <div className="text-2xl font-bold text-green-400">{routeDetails.availableSeats || 0}</div>
                         </div>
                         <div>
-                          <Timer className="w-5 h-5 text-orange-400 mx-auto mb-1" />
-                          <div className="text-sm text-gray-400">Est. Departure</div>
-                          <div className="text-lg font-bold text-orange-400">
+                          <div className="w-12 h-12 rounded-xl bg-orange-500/20 flex items-center justify-center mx-auto mb-3">
+                            <Timer className="w-6 h-6 text-orange-400" />
+                          </div>
+                          <div className="text-white/60 mb-1">Est. Departure</div>
+                          <div className="text-xl font-bold text-orange-400">
                             {routeDetails.estimatedDeparture 
                               ? new Date(routeDetails.estimatedDeparture).toLocaleTimeString('en-US', { 
                                   hour: '2-digit', 
@@ -737,32 +769,33 @@ export default function StepByStepBooking() {
                           </div>
                         </div>
                         <div>
-                          <CreditCard className="w-5 h-5 text-blue-400 mx-auto mb-1" />
-                          <div className="text-sm text-gray-400">Price per Seat</div>
-                          <div className="text-xl font-bold text-blue-400">{routeDetails.basePrice || 0} TND</div>
+                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
+                            <CreditCard className="w-6 h-6 text-blue-400" />
+                          </div>
+                          <div className="text-white/60 mb-1">Price per Seat</div>
+                          <div className="text-2xl font-bold text-blue-400">{routeDetails.basePrice || 0} TND</div>
                         </div>
                       </div>
                     </CardContent>
                   </Card>
 
-               
                   {/* Seat Selection Counter */}
-                  <div className="space-y-6">
-                    <Card className="bg-slate-700/20 border-slate-600/50">
-                      <CardContent className="p-6">
-                        <div className="text-center space-y-4">
-                          <h3 className="text-lg font-semibold text-white">Number of Seats</h3>
-                          <div className="flex items-center justify-center gap-4">
+                  <div className="space-y-8">
+                    <Card className="bg-white/5 border border-white/20 backdrop-blur-sm">
+                      <CardContent className="p-8">
+                        <div className="text-center space-y-6">
+                          <h3 className="text-xl font-semibold text-white">Number of Seats</h3>
+                          <div className="flex items-center justify-center gap-6">
                             <Button
                               variant="outline"
                               size="icon"
                               onClick={() => setSelectedSeats(Math.max(1, selectedSeats - 1))}
                               disabled={selectedSeats <= 1}
-                              className="w-12 h-12 rounded-full border-slate-600 text-white hover:bg-slate-700"
+                              className="w-16 h-16 rounded-full border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-200 disabled:opacity-50"
                             >
                               -
                             </Button>
-                            <div className="text-4xl font-bold text-white min-w-[80px]">
+                            <div className="text-5xl font-bold text-white min-w-[100px]">
                               {selectedSeats}
                             </div>
                             <Button
@@ -770,28 +803,28 @@ export default function StepByStepBooking() {
                               size="icon"
                               onClick={() => setSelectedSeats(Math.min(routeDetails.availableSeats || 6, selectedSeats + 1))}
                               disabled={selectedSeats >= (routeDetails.availableSeats || 6)}
-                              className="w-12 h-12 rounded-full border-slate-600 text-white hover:bg-slate-700"
+                              className="w-16 h-16 rounded-full border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-200 disabled:opacity-50"
                             >
                               +
                             </Button>
                           </div>
-                          <p className="text-sm text-gray-400">
-                            Maximum {routeDetails.availableSeats || 6} seats available
+                          <p className="text-white/60 text-lg">
+                            Maximum <span className="text-green-400 font-semibold">{routeDetails.availableSeats || 6}</span> seats available
                           </p>
                         </div>
                       </CardContent>
                     </Card>
 
                     {/* Cost Display */}
-                    <Card className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border-green-500/20">
-                      <CardContent className="p-6">
+                    <Card className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/30 backdrop-blur-sm">
+                      <CardContent className="p-8">
                         <div className="flex justify-between items-center">
                           <div>
-                            <div className="text-sm text-gray-400">Total Cost</div>
-                            <div className="text-sm text-gray-400">{selectedSeats} seat{selectedSeats > 1 ? 's' : ''} × {routeDetails.basePrice || 0} TND</div>
+                            <div className="text-white/60 text-lg mb-1">Total Cost</div>
+                            <div className="text-white/60">{selectedSeats} seat{selectedSeats > 1 ? 's' : ''} × {routeDetails.basePrice || 0} TND</div>
                           </div>
                           <div className="text-right">
-                            <div className="text-3xl font-bold text-green-400">
+                            <div className="text-4xl font-bold text-green-400">
                               {selectedSeats * (routeDetails.basePrice || 0)} TND
                             </div>
                           </div>
@@ -801,11 +834,11 @@ export default function StepByStepBooking() {
 
                     <Button
                       onClick={handleSeatsConfirm}
-                      className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
+                      className="w-full h-14 text-xl font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg shadow-green-600/25 transition-all duration-200"
                       disabled={selectedSeats === 0 || selectedSeats > (routeDetails.availableSeats || 0)}
                     >
                       Continue to Confirmation
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      <ArrowRight className="w-5 h-5 ml-3" />
                     </Button>
                   </div>
                 </>
@@ -816,49 +849,53 @@ export default function StepByStepBooking() {
 
         {/* Step 4: Confirm Booking */}
         {currentStep === 'confirm' && selectedDeparture && selectedDestination && routeDetails && (
-          <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-green-400" />
+          <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
+            <CardHeader className="pb-6">
+              <CardTitle className="text-2xl text-white flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-400" />
+                </div>
                 Confirm Your Booking
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-white/60 text-lg">
                 Please review your booking details before proceeding to payment
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-8">
               {/* Booking Summary */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-4 bg-slate-700/30 rounded-lg">
-                  <span className="text-gray-300">From:</span>
-                  <span className="text-blue-400 font-medium">{selectedDeparture.name || selectedDeparture.stationName}</span>
+                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
+                  <span className="text-white/60 text-lg">From:</span>
+                  <span className="text-blue-400 font-semibold text-lg">{selectedDeparture.name || selectedDeparture.stationName}</span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-slate-700/30 rounded-lg">
-                  <span className="text-gray-300">To:</span>
-                  <span className="text-purple-400 font-medium">{selectedDestination.destinationName}</span>
+                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
+                  <span className="text-white/60 text-lg">To:</span>
+                  <span className="text-purple-400 font-semibold text-lg">{selectedDestination.destinationName}</span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-slate-700/30 rounded-lg">
-                  <span className="text-gray-300">Number of Seats:</span>
-                  <span className="text-green-400 font-medium">{selectedSeats}</span>
+                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
+                  <span className="text-white/60 text-lg">Number of Seats:</span>
+                  <span className="text-green-400 font-semibold text-lg">{selectedSeats}</span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-slate-700/30 rounded-lg">
-                  <span className="text-gray-300">Price per Seat:</span>
-                  <span className="text-blue-400 font-medium">{routeDetails.basePrice} TND</span>
+                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
+                  <span className="text-white/60 text-lg">Price per Seat:</span>
+                  <span className="text-blue-400 font-semibold text-lg">{routeDetails.basePrice} TND</span>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-lg border border-green-500/20">
-                  <span className="text-lg font-medium text-white">Total Amount:</span>
-                  <span className="text-2xl font-bold text-green-400">{selectedSeats * routeDetails.basePrice} TND</span>
+                <div className="flex justify-between items-center p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl border border-green-500/30">
+                  <span className="text-xl font-semibold text-white">Total Amount:</span>
+                  <span className="text-3xl font-bold text-green-400">{selectedSeats * routeDetails.basePrice} TND</span>
                 </div>
               </div>
 
               {/* Route Map */}
-              <Card className="backdrop-blur-xl bg-slate-800/40 border border-slate-600/50">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Navigation className="w-5 h-5 text-blue-400" />
+              <Card className="backdrop-blur-sm bg-white/5 border border-white/10">
+                <CardHeader className="pb-6">
+                  <CardTitle className="text-2xl text-white flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
+                      <Navigation className="w-6 h-6 text-blue-400" />
+                    </div>
                     Your Journey Route
                   </CardTitle>
-                  <CardDescription>
+                  <CardDescription className="text-white/60 text-lg">
                     Visual route from {selectedDeparture.name || selectedDeparture.stationName} to {selectedDestination.destinationName}
                   </CardDescription>
                 </CardHeader>
@@ -877,21 +914,21 @@ export default function StepByStepBooking() {
               </Card>
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {isAuthenticated ? (
                   <Button
                     onClick={createBooking}
                     disabled={isCreatingBooking}
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 disabled:from-gray-600 disabled:to-gray-700"
+                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg shadow-red-600/25 transition-all duration-200 disabled:from-gray-600 disabled:to-gray-700"
                   >
                     {isCreatingBooking ? (
                       <>
-                        <Loader className="w-5 h-5 mr-2 animate-spin" />
+                        <Loader className="w-6 h-6 mr-3 animate-spin" />
                         Creating Booking...
                       </>
                     ) : (
                       <>
-                        <CreditCard className="w-5 h-5 mr-2" />
+                        <CreditCard className="w-6 h-6 mr-3" />
                         Book Trip & Pay {selectedSeats * routeDetails.basePrice} TND
                       </>
                     )}
@@ -899,21 +936,19 @@ export default function StepByStepBooking() {
                 ) : (
                   <Button
                     onClick={() => {/* Redirect to login */}}
-                    className="w-full h-12 text-lg font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-600/25 transition-all duration-200"
                   >
-                    <User className="w-5 h-5 mr-2" />
+                    <User className="w-6 h-6 mr-3" />
                     Login to Complete Booking
                   </Button>
                 )}
 
                 {!isCreatingBooking && isAuthenticated && (
-                  <p className="text-sm text-gray-400 text-center">
+                  <p className="text-white/60 text-center text-lg">
                     You'll be redirected to Konnect for secure payment processing
                   </p>
                 )}
               </div>
-
-             
             </CardContent>
           </Card>
         )}

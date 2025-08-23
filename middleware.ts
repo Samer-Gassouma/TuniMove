@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// Define protected routes that require authentication
+// Define protected routes that require authentication (excluding user routes)
 const protectedRoutes = ['/dashboard', '/profile'];
 
-// Define auth routes that authenticated users shouldn't access
+// Define auth routes that authenticated users shouldn't access (excluding user routes)
 const authRoutes = ['/auth/login', '/auth/register'];
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // Skip user routes - they have their own middleware
+  if (pathname.startsWith('/user')) {
+    return NextResponse.next();
+  }
+  
   const token = request.cookies.get('token')?.value || 
                 request.headers.get('authorization')?.replace('Bearer ', '');
 
   // Debug: Log all cookies
   const allCookies = Array.from(request.cookies.getAll());
-  console.log(`🛡️ Middleware: ${pathname}, Token: ${token ? 'Present' : 'None'}`);
+  console.log(`🛡️ Main Middleware: ${pathname}, Token: ${token ? 'Present' : 'None'}`);
   console.log(`🍪 All cookies:`, allCookies.map(c => `${c.name}=${c.value.substring(0, 20)}...`));
 
   // If user has token and tries to access auth pages, redirect to dashboard

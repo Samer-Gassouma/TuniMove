@@ -34,12 +34,12 @@ export default function ProfilePage() {
 
   useEffect(() => {
     const verifyAndLoadUser = async () => {
-      const token = localStorage.getItem('token');
-      const userData = localStorage.getItem('user');
+      const token = localStorage.getItem('userToken');
+      const userData = localStorage.getItem('userProfile');
       
       if (!token) {
-        console.log('🔒 No token found, redirecting to login');
-        router.push('/auth/login');
+        console.log('🔒 No user token found, redirecting to login');
+        router.push('/user/auth/login');
         return;
       }
 
@@ -75,23 +75,23 @@ export default function ProfilePage() {
 
         if (response.ok && result.success && result.data?.user) {
           const verifiedUser = result.data.user;
-          localStorage.setItem('user', JSON.stringify(verifiedUser));
+          localStorage.setItem('userProfile', JSON.stringify(verifiedUser));
           setUser(verifiedUser);
           setEditData({
             firstName: verifiedUser.firstName || '',
             lastName: verifiedUser.lastName || '',
             email: verifiedUser.email || ''
           });
-          console.log('✅ Token verified, user loaded');
+          console.log('✅ User token verified, user loaded');
         } else {
           throw new Error(result.message || 'Token verification failed');
         }
       } catch (error) {
         console.error('❌ Token verification failed:', error);
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-        router.push('/auth/login');
+        localStorage.removeItem('userToken');
+        localStorage.removeItem('userProfile');
+        document.cookie = 'userToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        router.push('/user/auth/login');
       }
     };
 
@@ -120,7 +120,7 @@ export default function ProfilePage() {
     setSuccess('');
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('userToken');
       const response = await fetch('/api/v1/users/profile', {
         method: 'PUT',
         headers: {
