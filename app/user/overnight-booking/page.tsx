@@ -6,12 +6,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, MapPin, Calendar, Clock, Users, Navigation, Loader, CheckCircle2, CreditCard, User, ArrowRight, Car, Timer, AlertCircle, Zap, Route, Building2, Train, Minus, Plus, Hexagon, Cpu, Terminal, Network } from "lucide-react";
-import { apiClient } from "@/lib/api";
+import { ArrowLeft, MapPin, Calendar, Clock, Users, Navigation, Loader, CheckCircle2, CreditCard, User, ArrowRight, Car, Timer, AlertCircle, Moon, Star, Zap, Route, Building2, Train, Minus, Plus, Hexagon, Cpu, Terminal, Network } from "lucide-react";
+import { apiClient, calculateOvernightETA, formatOvernightDepartureTime } from "@/lib/api";
 import StationMap from "@/components/map/StationMap";
 import stationService from "@/lib/station-service";
-import { useLanguage } from "@/lib/hooks/useLanguage";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import ETDDisplay from "@/components/ui/etd-display";
 import { useRouter } from "next/navigation";
 
@@ -73,6 +71,7 @@ interface RouteDestination {
   estimatedDeparture: string;
   basePrice: number;
   vehicles: VehicleInfo[];
+  openingTime?: string; // Station opening time in HH:MM format
   etaPrediction?: ETDPrediction;
 }
 
@@ -140,8 +139,7 @@ interface Booking {
 
 type BookingStep = 'departure' | 'destination' | 'seats' | 'confirm';
 
-export default function StepByStepBooking() {
-  const { t } = useLanguage();
+export default function OvernightBooking() {
   const [currentStep, setCurrentStep] = useState<BookingStep>('departure');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const router = useRouter();
@@ -158,7 +156,7 @@ export default function StepByStepBooking() {
   const [selectedDestination, setSelectedDestination] = useState<RouteDestination | null>(null);
   const [routeDetails, setRouteDetails] = useState<RouteDestination | null>(null);
   const [selectedSeats, setSelectedSeats] = useState(1);
-  
+
   // Error states
   const [error, setError] = useState<string | null>(null);
 
@@ -176,7 +174,7 @@ export default function StepByStepBooking() {
     setError(null);
 
     try {
-      console.log('🔄 Loading stations from API...');
+      console.log('🌙 Loading stations with overnight capabilities...');
       const response = await stationService.getAllStations();
 
       console.log('📦 Raw API Response:', response);
@@ -188,7 +186,7 @@ export default function StepByStepBooking() {
         console.log('🔍 First station structure:', stationsData[0]);
 
         setOnlineStations(stationsData);
-        console.log(`✅ Loaded ${stationsData.length} stations`);
+        console.log(`✅ Loaded ${stationsData.length} stations with overnight capabilities`);
       } else {
         throw new Error(response.message || 'Failed to load stations');
       }
@@ -243,7 +241,7 @@ export default function StepByStepBooking() {
     }
 
     const stationName = station.name || station.stationName || 'Unknown Station';
-    console.log('🏪 Selected departure station:', stationName, 'with ID:', stationId);
+    console.log('🌙 Selected overnight departure station:', stationName, 'with ID:', stationId);
     setSelectedDeparture(station);
     setSelectedDestination(null);
     setRouteDetails(null);
@@ -252,9 +250,9 @@ export default function StepByStepBooking() {
     setError(null);
 
     try {
-      console.log(`🔄 Loading destinations for ${stationName}...`);
+      console.log(`🔄 Loading overnight destinations for ${stationName}...`);
       // Use the stationId that was clicked (which should be the correct one)
-      const response = await apiClient.getStationDestinations(stationId);
+      const response = await apiClient.getOvernightDestinations(stationId);
 
       if (response.success && response.data) {
         // Handle both array and object responses
@@ -263,22 +261,21 @@ export default function StepByStepBooking() {
         // Enrich destinations with coordinates from station data
         const enrichedDestinations = stationService.enrichDestinationsWithCoordinates(destinationsData, onlineStations);
 
-        // Add ETA predictions from the API response
-        const destinationsWithETA = enrichedDestinations.map(destination => ({
+        // Add openingTime to destinations if available from the API response
+        const destinationsWithOpeningTime = enrichedDestinations.map(destination => ({
           ...destination,
-          etaPrediction: (destinationsData as any[]).find(d => d.destinationId === destination.destinationId)?.etaPrediction
+          openingTime: (destinationsData as any[]).find(d => d.destinationId === destination.destinationId)?.openingTime || '06:00'
         }));
 
-        setAvailableDestinations(destinationsWithETA);
-        console.log(`✅ Found ${destinationsWithETA.length} destinations from ${stationName}`);
-        console.log('🤖 ETA predictions:', destinationsWithETA.map(d => d.etaPrediction));
+        setAvailableDestinations(destinationsWithOpeningTime);
+        console.log(`✅ Found ${destinationsWithOpeningTime.length} overnight destinations from ${stationName}`);
         setCurrentStep('destination');
       } else {
-        throw new Error(response.error || 'No destinations available');
+        throw new Error(response.error || 'No overnight destinations available');
       }
     } catch (err: any) {
-      console.error('❌ Error loading destinations:', err);
-      setError(err.message || 'Failed to load destinations');
+      console.error('❌ Error loading overnight destinations:', err);
+      setError(err.message || 'Failed to load overnight destinations');
     } finally {
       setLoadingDestinations(false);
     }
@@ -294,13 +291,13 @@ export default function StepByStepBooking() {
 
     try {
       const stationName = selectedDeparture.name || selectedDeparture.stationName || 'Unknown Station';
-      console.log(`🔄 Loading route details from ${stationName} to ${destination.destinationName}...`);
+      console.log(`🔄 Loading overnight route details from ${stationName} to ${destination.destinationName}...`);
 
       // Get the correct station ID for the API call
       const departureStationId = selectedDeparture.stationId || selectedDeparture.id || '';
-      console.log('🚂 Using departure station ID:', departureStationId);
+      console.log('🚂 Using overnight departure station ID:', departureStationId);
 
-      const response = await apiClient.getRouteDetails(departureStationId, destination.destinationId);
+      const response = await apiClient.getOvernightRouteDetails(departureStationId, destination.destinationId);
 
       if (response.success && response.data) {
         // Handle the actual API response structure
@@ -316,24 +313,25 @@ export default function StepByStepBooking() {
           delegation: routeData.route?.destinationStation?.delegation || selectedDestination?.delegation || '',
           totalVehicles: queueData.totalVehicles || 0,
           availableSeats: queueData.totalAvailableSeats || 0,
-          estimatedDeparture: queueData.vehicles?.[0]?.estimatedDeparture || 'Soon',
+          estimatedDeparture: queueData.vehicles?.[0]?.estimatedDeparture || 'Tomorrow Morning',
           basePrice: queueData.priceRange?.average || queueData.vehicles?.[0]?.pricePerSeat || 0,
           vehicles: queueData.vehicles || [],
+          openingTime: queueData.openingTime || '06:00', // Default to 6 AM if not provided
           etaPrediction: routeData.etaPrediction // Add ETA prediction from API
         };
 
         setRouteDetails(processedRouteDetails);
-        console.log(`✅ Route details loaded: ${processedRouteDetails.availableSeats} seats available`);
+        console.log(`✅ Overnight route details loaded: ${processedRouteDetails.availableSeats} seats available`);
         console.log('🚐 Vehicles:', processedRouteDetails.vehicles.length);
         console.log('💰 Price per seat:', processedRouteDetails.basePrice, 'TND');
         console.log('🤖 ETA Prediction:', processedRouteDetails.etaPrediction);
         setCurrentStep('seats');
       } else {
-        throw new Error(response.error || 'Failed to load route details');
+        throw new Error(response.error || 'Failed to load overnight route details');
       }
     } catch (err: any) {
-      console.error('❌ Error loading route details:', err);
-      setError(err.message || 'Failed to load route details');
+      console.error('❌ Error loading overnight route details:', err);
+      setError(err.message || 'Failed to load overnight route details');
     } finally {
       setLoadingRouteDetails(false);
     }
@@ -343,18 +341,18 @@ export default function StepByStepBooking() {
     if (selectedSeats > 0 && routeDetails && selectedSeats <= (routeDetails.availableSeats || 0)) {
       setCurrentStep('confirm');
     } else {
-      setError(t('pleaseSelectValidSeats'));
+      setError('Please select a valid number of seats');
     }
   };
 
-  const createBooking = async () => {
+  const createOvernightBooking = async () => {
     if (!selectedDeparture || !selectedDestination || !routeDetails) {
-      setError(t('missingBookingInfo'));
+      setError('Missing booking information');
       return;
     }
 
     if (!isAuthenticated) {
-      setError(t('pleaseLoginToBook'));
+      setError('Please login to book an overnight trip');
       // In a real app, you'd redirect to login
       return;
     }
@@ -363,10 +361,11 @@ export default function StepByStepBooking() {
     setError(null);
 
     try {
-      // Use current time as journey date since we're booking for immediate departure
+      // Use current time as journey date since we're booking for next day departure
       const journeyDateTime = new Date();
+      journeyDateTime.setDate(journeyDateTime.getDate() + 1); // Next day for overnight
 
-      console.log('🎫 Creating booking...', {
+      console.log('🌙 Creating overnight booking...', {
         departureStationId: selectedDeparture.stationId || selectedDeparture.id,
         destinationStationId: selectedDestination.destinationId,
         seatsBooked: selectedSeats,
@@ -374,18 +373,17 @@ export default function StepByStepBooking() {
       });
 
       const departureStationId = selectedDeparture.stationId || selectedDeparture.id || '';
-      const response = await apiClient.createBooking(
+      const response = await apiClient.createOvernightBooking(
         departureStationId,
         selectedDestination.destinationId,
-        selectedSeats,
-        journeyDateTime.toISOString()
+        selectedSeats
       );
 
       const responseData = response.data as any; // Type as any to handle actual API response structure
 
       if (response.success && (responseData?.paymentUrl || responseData?.payment?.paymentUrl)) {
         const paymentUrl = responseData.paymentUrl || responseData.payment?.paymentUrl;
-        console.log('✅ Booking created successfully:', responseData.booking?.id || responseData.booking?.bookingId);
+        console.log('✅ Overnight booking created successfully:', responseData.booking?.id || responseData.booking?.bookingId);
         console.log('💳 Redirecting to payment:', paymentUrl);
 
         // Automatically redirect to payment
@@ -399,8 +397,8 @@ export default function StepByStepBooking() {
         throw new Error(response.error || 'No payment URL received');
       }
     } catch (err: any) {
-      console.error('❌ Booking creation failed:', err);
-      setError(err.message || 'Failed to create booking');
+      console.error('❌ Overnight booking creation failed:', err);
+      setError(err.message || 'Failed to create overnight booking');
     } finally {
       setIsCreatingBooking(false);
     }
@@ -422,58 +420,57 @@ export default function StepByStepBooking() {
         break;
       default:
         // Go to dashboard or previous page
-        router.push('/user/dashboard');
         break;
     }
   };
 
   const getStepTitle = () => {
     switch (currentStep) {
-      case 'departure': return t('selectDepartureStation');
-      case 'destination': return t('chooseDestination');
-      case 'seats': return t('selectSeatsDate');
-      case 'confirm': return t('confirmBooking');
-      default: return t('bookTrip');
+      case 'departure': return 'Select Departure Station';
+      case 'destination': return 'Choose Overnight Destination';
+      case 'seats': return 'Select Seats & Date';
+      case 'confirm': return 'Confirm Overnight Booking';
+      default: return 'Book Overnight Trip';
     }
   };
 
   const getStepDescription = () => {
     switch (currentStep) {
-      case 'departure': return t('chooseStartingPoint');
-      case 'destination': return `${t('availableDestinationsFrom')} ${selectedDeparture?.name || selectedDeparture?.stationName}`;
-      case 'seats': return t('selectNumberOfSeats');
-      case 'confirm': return t('reviewConfirmBooking');
+      case 'departure': return 'Choose your starting point from stations with overnight services';
+      case 'destination': return `Available overnight destinations from ${selectedDeparture?.name || selectedDeparture?.stationName}`;
+      case 'seats': return 'Select number of seats for your overnight journey';
+      case 'confirm': return 'Review and confirm your overnight booking details';
       default: return '';
     }
   };
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Cyberpunk Header */}
-      <header className="border-b border-orange-500/30 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-xl">
+      {/* Header */}
+      <header className="border-b border-white/10 bg-black/20 backdrop-blur-xl">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center gap-6 py-8">
             <Button
               onClick={currentStep === 'departure' ? () => router.push('/user/dashboard') : goBack}
               variant="outline"
               size="sm"
-              className="border-orange-500/30 text-gray-300 hover:bg-orange-500/10 hover:text-orange-400 hover:border-orange-400 transition-all duration-200 font-mono"
+              className="border-white/20 text-white hover:bg-white/10 hover:border-white/30 transition-all duration-200"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 text-orange-400" />
             </Button>
 
             <div className="flex-1">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent mb-2 font-mono">{getStepTitle()}</h1>
-              <p className="text-gray-400 text-lg font-mono">{getStepDescription()}</p>
+              <h1 className="text-3xl font-bold text-white mb-2 flex items-center gap-3">
+                <Hexagon className="w-8 h-8 text-orange-400" />
+                {getStepTitle()}
+              </h1>
+              <p className="text-white/60 text-lg font-mono">{getStepDescription()}</p>
             </div>
 
-            {/* Language Switcher */}
-            <LanguageSwitcher />
-
-            {/* Cyberpunk Step indicator */}
+            {/* Enhanced Step indicator */}
             <div className="hidden lg:flex items-center gap-3">
-              {['departure', 'step', 'seats', 'confirm'].map((step, index) => {
-                const stepIndex = ['departure', 'step', 'seats', 'confirm'].indexOf(currentStep);
+              {['departure', 'destination', 'seats', 'confirm'].map((step, index) => {
+                const stepIndex = ['departure', 'destination', 'seats', 'confirm'].indexOf(currentStep);
                 const isCompleted = index < stepIndex;
                 const isCurrent = currentStep === step;
 
@@ -482,10 +479,10 @@ export default function StepByStepBooking() {
                     <div
                       className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all duration-300 ${
                         isCurrent
-                          ? 'bg-gradient-to-r from-orange-500 to-red-600 text-white shadow-lg shadow-orange-500/25'
+                          ? 'bg-teal-600 text-white shadow-lg shadow-teal-600/25'
                           : isCompleted
-                          ? 'bg-gradient-to-r from-emerald-500 to-green-600 text-white shadow-lg shadow-emerald-500/25'
-                          : 'bg-gradient-to-r from-gray-800/50 to-black/50 text-gray-400 border border-orange-500/30'
+                          ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-600/25'
+                          : 'bg-white/10 text-white/40 border border-white/20'
                       }`}
                     >
                       {isCompleted ? (
@@ -496,7 +493,7 @@ export default function StepByStepBooking() {
                     </div>
                     {index < 3 && (
                       <div className={`w-8 h-1 mx-2 rounded-full transition-all duration-300 ${
-                        index < stepIndex ? 'bg-gradient-to-r from-emerald-500 to-green-600' : 'bg-gray-700/50'
+                        index < stepIndex ? 'bg-cyan-600' : 'bg-white/20'
                       }`} />
                     )}
                   </div>
@@ -510,9 +507,9 @@ export default function StepByStepBooking() {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {error && (
-          <Card className="mb-8 border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-red-500/5 backdrop-blur-sm shadow-lg shadow-orange-500/10">
+          <Card className="mb-8 border-red-500/30 bg-red-500/5 backdrop-blur-sm">
             <CardContent className="p-6">
-              <div className="flex items-center gap-3 text-orange-400 font-mono">
+              <div className="flex items-center gap-3 text-red-400">
                 <AlertCircle className="w-6 h-6" />
                 <span className="text-lg">{error}</span>
               </div>
@@ -523,103 +520,106 @@ export default function StepByStepBooking() {
         {/* Step 1: Select Departure Station */}
         {currentStep === 'departure' && (
           <div className="space-y-8">
-            <Card className="backdrop-blur-sm bg-gradient-to-br from-gray-900/90 to-black/90 border border-orange-500/30 shadow-xl shadow-orange-500/10">
+            <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
               <CardHeader className="pb-6">
-                <CardTitle className="text-2xl text-white flex items-center gap-3 font-mono">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-600/20 flex items-center justify-center border border-orange-500/30">
+                <CardTitle className="text-2xl text-white flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-500/20 flex items-center justify-center">
                     <Hexagon className="w-6 h-6 text-orange-400" />
                   </div>
-                  {t('selectDeparture')}
+                  SELECT_ONLINE_DEPARTURE_STATION
                 </CardTitle>
-                <CardDescription className="text-gray-400 text-lg font-mono">
-                  {t('chooseStartingPoint')}
+                <CardDescription className="text-white/60 text-lg">
+                  CHOOSE_FROM_ONLINE_STATIONS_WITH_OVERNIGHT_SERVICES
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {loadingStations ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="text-center">
-                      <Loader className="w-8 h-8 animate-spin text-orange-400 mx-auto mb-4" />
-                      <span className="text-gray-400 text-lg font-mono">{t('loadingStations')}</span>
+                      <Loader className="w-8 h-8 animate-spin text-teal-400 mx-auto mb-4" />
+                      <span className="text-white/60 text-lg font-mono">LOADING_ONLINE_STATIONS...</span>
                     </div>
                   </div>
-                ) : !onlineStations || onlineStations.length === 0 || onlineStations.filter(s => s.isOnline).length === 0 ? (
+                ) : !onlineStations || onlineStations.length === 0 ? (
                   <div className="text-center py-16">
-                    <AlertCircle className="w-16 h-16 text-orange-400 mx-auto mb-6" />
-                    <h3 className="text-xl font-semibold text-white mb-3 font-mono">{t('noStationsFound')}</h3>
-                    <p className="text-gray-400 mb-6 text-lg font-mono">{t('noOnlineStationsAvailable')}</p>
-                    <Button onClick={loadOnlineStations} variant="outline" className="border-orange-500/30 text-gray-300 hover:bg-orange-500/10 hover:text-orange-400 font-mono">
-                      {t('tryAgain')}
-                    </Button>
+                    <Moon className="w-16 h-16 text-teal-400 mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-white mb-3 font-mono">NO_ONLINE_STATIONS</h3>
+                    <p className="text-white/60 text-lg font-mono">NO_STATIONS_CURRENTLY_ONLINE</p>
+                    <p className="text-white/50 text-sm mt-2 font-mono">PLEASE_WAIT_FOR_STATIONS_TO_COME_ONLINE</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {(onlineStations || []).filter(station => station.isOnline).map((station, index) => {
-                      const stationAny = station as any;
-                      if (!station || (!stationAny.id && !stationAny._id && !stationAny.stationId)) {
-                        console.warn('Skipping invalid station at index', index, station);
-                        return null;
-                      }
-
-                      const stationId = stationAny.id || stationAny._id || stationAny.stationId;
-                      const stationName = stationAny.name || stationAny.stationName || `Station ${index + 1}`;
-
-                      return (
-                        <Card
-                          key={stationId}
-                          className="cursor-pointer hover:bg-gradient-to-br hover:from-gray-800/90 hover:to-gray-900/90 hover:border-orange-400/50 transition-all duration-300 border border-orange-500/30 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-sm group shadow-lg shadow-orange-500/10"
-                          onClick={() => {
-                            console.log('🖱️ Station clicked:', { stationId, stationName, station });
-                            handleDepartureSelect(stationId);
-                          }}
-                        >
-                          <CardContent className="p-6">
+                  <div className="space-y-6">
+                    {onlineStations.filter(station => station.isOnline).map((station) => (
+                      <Card
+                        key={station.id}
+                        className="cursor-pointer hover:bg-white/10 hover:border-teal-500/30 transition-all duration-300 border border-white/20 bg-white/5 backdrop-blur-sm group"
+                        onClick={() => handleDepartureSelect(station.id)}
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-orange-500/20 to-red-600/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-orange-500/30">
-                                <Hexagon className="w-8 h-8 text-orange-400" />
+                              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-teal-500/20 to-cyan-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <Building2 className="w-8 h-8 text-teal-400" />
                               </div>
-                              <div className="flex-1">
-                                <h3 className="font-bold text-white text-lg mb-2 font-mono">{stationName}</h3>
-                                <p className="text-gray-400 mb-3 font-mono">
-                                  {typeof station.governorate === 'string' ? station.governorate : station.governorate?.name || 'Unknown'}, {typeof station.delegation === 'string' ? station.delegation : station.delegation?.name || 'Unknown'}
+                              <div>
+                                <h3 className="font-bold text-white text-lg mb-2 flex items-center gap-2">
+                                                                     {station.name || station.stationName || 'UNKNOWN_STATION'}
+                                  {station.isOnline && (
+                                    <Badge className="bg-green-500/20 border-green-500/30 text-green-400 text-xs px-2 py-1">
+                                      ONLINE
+                                    </Badge>
+                                  )}
+                                </h3>
+                                <p className="text-white/60 mb-3">
+                                                                     {typeof station.governorate === 'string' ? station.governorate : station.governorate?.name || 'UNKNOWN'}, {typeof station.delegation === 'string' ? station.delegation : station.delegation?.name || 'UNKNOWN'}
                                 </p>
-                                <div className="flex items-center gap-2">
-                                  <Badge className="bg-gradient-to-r from-emerald-500/20 to-green-600/20 text-emerald-400 border-emerald-500/50 px-3 py-1 font-mono">
-                                    <Zap className="w-3 h-3 mr-2" />
-                                    ONLINE
-                                  </Badge>
+                                <div className="flex items-center gap-6">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <MapPin className="w-4 h-4 text-blue-400" />
+                                                                         <span className="text-blue-400 font-medium font-mono">
+                                       {station.latitude && station.longitude ? 'GPS_AVAILABLE' : 'GPS_PENDING'}
+                                     </span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Zap className="w-4 h-4 text-yellow-400" />
+                                                                         <span className="text-yellow-400 font-medium font-mono">
+                                       {station.isOnline ? 'ACTIVE' : 'INACTIVE'}
+                                     </span>
+                                  </div>
                                 </div>
                               </div>
-                              <ArrowRight className="w-6 h-6 text-orange-400/40 group-hover:text-orange-400/60 transition-colors duration-300" />
                             </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    }).filter(Boolean)}
+                            <div className="text-right">
+                              <ArrowRight className="w-6 h-6 text-teal-400 group-hover:translate-x-1 transition-transform duration-300" />
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
                   </div>
                 )}
               </CardContent>
             </Card>
 
             {/* Interactive Map */}
-            {onlineStations && onlineStations.filter(s => s.isOnline).length > 0 && (
-              <Card className="backdrop-blur-sm bg-gradient-to-br from-gray-900/90 to-black/90 border border-orange-500/30 shadow-xl shadow-orange-500/10">
+            {onlineStations && onlineStations.length > 0 && (
+              <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
                 <CardHeader className="pb-6">
-                  <CardTitle className="text-2xl text-white flex items-center gap-3 font-mono">
-                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-green-600/20 flex items-center justify-center border border-emerald-500/30">
-                      <Navigation className="w-6 h-6 text-emerald-400" />
+                  <CardTitle className="text-2xl text-white flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                      <Navigation className="w-6 h-6 text-cyan-400" />
                     </div>
-                    INTERACTIVE_STATION_MAP
+                                         STATION_MAP
                   </CardTitle>
-                  <CardDescription className="text-gray-400 text-lg font-mono">
-                    CLICK_STATION_MARKER_TO_SELECT_DEPARTURE
+                  <CardDescription className="text-white/60 text-lg">
+                                         CLICK_ON_STATION_MARKERS_TO_SELECT_DEPARTURE_POINT
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <StationMap
-                    stations={onlineStations.filter(s => s.isOnline)}
+                    stations={onlineStations.filter(station => station.isOnline)}
                     destinations={[]}
-                    selectedDeparture={selectedDeparture}
+                    selectedDeparture={null}
                     selectedDestination={null}
                     onStationSelect={handleDepartureSelect}
                     onDestinationSelect={() => {}}
@@ -635,61 +635,88 @@ export default function StepByStepBooking() {
         {/* Step 2: Select Destination */}
         {currentStep === 'destination' && selectedDeparture && (
           <div className="space-y-8">
-            <Card className="backdrop-blur-sm bg-gradient-to-br from-gray-900/90 to-black/90 border border-purple-500/30 shadow-xl shadow-purple-500/10">
+            <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
               <CardHeader className="pb-6">
-                <CardTitle className="text-2xl text-white flex items-center gap-3 font-mono">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-600/20 flex items-center justify-center border border-purple-500/30">
-                    <Route className="w-6 h-6 text-purple-400" />
+                <CardTitle className="text-2xl text-white flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                    <Route className="w-6 h-6 text-cyan-400" />
                   </div>
-                  {t('availableDestinationsFrom')}
+                  Available Overnight Destinations
                 </CardTitle>
-                <CardDescription className="text-gray-400 text-lg font-mono">
-                  {t('departure')} <span className="text-purple-400 font-semibold font-mono">{selectedDeparture.name || selectedDeparture.stationName}</span>
+                <CardDescription className="text-white/60 text-lg">
+                  Departing from <span className="text-teal-400 font-semibold">{selectedDeparture.name || selectedDeparture.stationName}</span>
+                  <br />
+                  <span className="text-sm text-white/50">Overnight vehicles depart in the morning after station opening</span>
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {loadingDestinations ? (
                   <div className="flex items-center justify-center py-16">
                     <div className="text-center">
-                      <Loader className="w-8 h-8 animate-spin text-purple-400 mx-auto mb-4" />
-                      <span className="text-gray-400 text-lg font-mono">{t('loadingStations')}</span>
+                      <Loader className="w-8 h-8 animate-spin text-cyan-400 mx-auto mb-4" />
+                      <span className="text-white/60 text-lg">Loading overnight destinations...</span>
                     </div>
                   </div>
                 ) : !availableDestinations || availableDestinations.length === 0 ? (
                   <div className="text-center py-16">
-                    <AlertCircle className="w-16 h-16 text-purple-400 mx-auto mb-6" />
-                    <h3 className="text-xl font-semibold text-white mb-3 font-mono">{t('noStationsFound')}</h3>
-                    <p className="text-gray-400 text-lg font-mono">NO_VEHICLES_QUEUED_FROM_STATION</p>
+                    <Moon className="w-16 h-16 text-teal-400 mx-auto mb-6" />
+                    <h3 className="text-xl font-semibold text-white mb-3">No Overnight Destinations</h3>
+                    <p className="text-white/60 text-lg">This station currently has no overnight destinations available.</p>
+                    <p className="text-white/50 text-sm mt-2">Overnight services typically operate from evening until morning.</p>
                   </div>
                 ) : (
                   <div className="space-y-6">
                     {(availableDestinations || []).filter(destination => destination && destination.destinationId && destination.destinationName).map((destination) => (
                       <Card
                         key={destination.destinationId}
-                        className="cursor-pointer hover:bg-gradient-to-br hover:from-gray-800/90 hover:to-gray-900/90 hover:border-purple-400/50 transition-all duration-300 border border-purple-500/30 bg-gradient-to-br from-gray-900/90 to-black/90 backdrop-blur-sm group shadow-lg shadow-purple-500/10"
+                        className="cursor-pointer hover:bg-white/10 hover:border-cyan-500/30 transition-all duration-300 border border-white/20 bg-white/5 backdrop-blur-sm group"
                         onClick={() => handleDestinationSelect(destination)}
                       >
                         <CardContent className="p-6">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
-                              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-purple-500/20 to-blue-600/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300 border border-purple-500/30">
-                                <MapPin className="w-8 h-8 text-purple-400" />
+                              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-cyan-500/20 to-teal-500/20 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                <MapPin className="w-8 h-8 text-cyan-400" />
                               </div>
                               <div>
-                                <h3 className="font-bold text-white text-lg mb-2 font-mono">{destination.destinationName || 'Unknown Destination'}</h3>
-                                <p className="text-gray-400 mb-3 font-mono">
+                                <h3 className="font-bold text-white text-lg mb-2 flex items-center gap-2">
+                                  {destination.destinationName || 'Unknown Destination'}
+                                  <Star className="w-4 h-4 text-teal-400" />
+                                </h3>
+                                <p className="text-white/60 mb-3">
                                   {destination.governorate || 'Unknown'}, {destination.delegation || 'Unknown'}
                                 </p>
                                 <div className="flex items-center gap-6">
                                   <div className="flex items-center gap-2 text-sm">
-                                    <Car className="w-4 h-4 text-purple-400" />
-                                    <span className="text-purple-400 font-medium font-mono">{destination.totalVehicles} VEHICLES</span>
+                                    <Car className="w-4 h-4 text-blue-400" />
+                                    <span className="text-blue-400 font-medium">{destination.totalVehicles} vehicles</span>
                                   </div>
                                   <div className="flex items-center gap-2 text-sm">
-                                    <Users className="w-4 h-4 text-emerald-400" />
-                                    <span className="text-emerald-400 font-medium font-mono">{destination.availableSeats} {t('seats')}</span>
+                                    <Users className="w-4 h-4 text-green-400" />
+                                    <span className="text-green-400 font-medium">{destination.availableSeats} seats</span>
                                   </div>
-
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Timer className="w-4 h-4 text-orange-400" />
+                                    <div className="flex flex-col">
+                                      <span className="text-orange-400 font-medium">
+                                        {destination.openingTime ? destination.openingTime : '06:00'}
+                                      </span>
+                                      <span className="text-xs text-white/70">
+                                        {destination.openingTime
+                                          ? formatOvernightDepartureTime(destination.openingTime, destination.estimatedDeparture)
+                                          : destination.estimatedDeparture
+                                        }
+                                      </span>
+                                      {destination.openingTime && (() => {
+                                        const { eta, dayIndicator } = calculateOvernightETA(destination.openingTime);
+                                        return (
+                                          <div className="text-xs text-white/50">
+                                            {dayIndicator === 'tomorrow' ? 'Tomorrow' : 'Today'} • ETA {eta}
+                                          </div>
+                                        );
+                                      })()}
+                                    </div>
+                                  </div>
                                   {/* Add ETD Display */}
                                   <ETDDisplay
                                     etaPrediction={destination.etaPrediction || null}
@@ -701,7 +728,7 @@ export default function StepByStepBooking() {
                             </div>
                             <div className="text-right">
                               <div className="text-3xl font-bold text-white mb-1">{destination.basePrice} TND</div>
-                              <div className="text-white/60">{t('pricePerSeat')}</div>
+                              <div className="text-white/60">per seat</div>
                             </div>
                           </div>
                         </CardContent>
@@ -717,13 +744,13 @@ export default function StepByStepBooking() {
               <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
                 <CardHeader className="pb-6">
                   <CardTitle className="text-2xl text-white flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-purple-500/20 flex items-center justify-center">
-                      <Navigation className="w-6 h-6 text-purple-400" />
+                    <div className="w-12 h-12 rounded-xl bg-cyan-500/20 flex items-center justify-center">
+                      <Navigation className="w-6 h-6 text-cyan-400" />
                     </div>
-                    {t('interactiveMap')}
+                    Overnight Destination Map
                   </CardTitle>
                   <CardDescription className="text-white/60 text-lg">
-                    Click on destination markers to select your final destination
+                    Click on destination markers to select your overnight destination
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -748,50 +775,72 @@ export default function StepByStepBooking() {
           <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
             <CardHeader className="pb-6">
               <CardTitle className="text-2xl text-white flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <Users className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <Users className="w-6 h-6 text-emerald-400" />
                 </div>
-                {t('selectSeats')}
+                Select Seats for Overnight Journey
               </CardTitle>
               <CardDescription className="text-white/60 text-lg">
-                Route: <span className="text-blue-400 font-semibold">{selectedDeparture?.name || selectedDeparture?.stationName}</span> → <span className="text-purple-400 font-semibold">{selectedDestination.destinationName}</span>
+                Route: <span className="text-teal-400 font-semibold">{selectedDeparture?.name || selectedDeparture?.stationName}</span> → <span className="text-cyan-400 font-semibold">{selectedDestination.destinationName}</span>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {loadingRouteDetails ? (
                 <div className="flex items-center justify-center py-16">
                   <div className="text-center">
-                    <Loader className="w-8 h-8 animate-spin text-green-400 mx-auto mb-4" />
-                    <span className="text-white/60 text-lg">Loading route details...</span>
+                    <Loader className="w-8 h-8 animate-spin text-emerald-400 mx-auto mb-4" />
+                    <span className="text-white/60 text-lg">Loading overnight route details...</span>
                   </div>
                 </div>
               ) : routeDetails ? (
                 <>
                   {/* Route Summary */}
-                  <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/30 backdrop-blur-sm">
+                  <Card className="bg-gradient-to-r from-slate-800/50 to-slate-700/30 border border-slate-600/30 backdrop-blur-sm">
                     <CardContent className="p-6">
-                      <div className="grid grid-cols-2 lg:grid-cols-3 gap-6 text-center">
-                        <div>
-                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
-                            <Car className="w-6 h-6 text-blue-400" />
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 text-center">
+                                                <div>
+                          <div className="w-12 h-12 rounded-xl bg-slate-600/30 flex items-center justify-center mx-auto mb-3">
+                            <Car className="w-6 h-6 text-slate-300" />
                           </div>
                           <div className="text-white/60 mb-1">Vehicles</div>
                           <div className="text-2xl font-bold text-white">{routeDetails.totalVehicles}</div>
                         </div>
                         <div>
-                          <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center mx-auto mb-3">
-                            <Users className="w-6 h-6 text-green-400" />
+                          <div className="w-12 h-12 rounded-xl bg-slate-600/30 flex items-center justify-center mx-auto mb-3">
+                            <Users className="w-6 h-6 text-slate-300" />
                           </div>
                           <div className="text-white/60 mb-1">Available Seats</div>
-                          <div className="text-2xl font-bold text-green-400">{routeDetails.availableSeats || 0}</div>
+                          <div className="text-2xl font-bold text-emerald-400">{routeDetails.availableSeats || 0}</div>
                         </div>
-                       
                         <div>
-                          <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center mx-auto mb-3">
-                            <CreditCard className="w-6 h-6 text-blue-400" />
+                          <div className="w-12 h-12 rounded-xl bg-slate-600/30 flex items-center justify-center mx-auto mb-3">
+                            <Timer className="w-6 h-6 text-slate-300" />
+                          </div>
+                          <div className="text-white/60 mb-1">Est. Departure</div>
+                          <div className="text-xl font-bold text-cyan-400">
+                            {routeDetails.openingTime ? routeDetails.openingTime : '06:00'}
+                          </div>
+                          <div className="text-sm text-white/70">
+                            {routeDetails.openingTime
+                              ? formatOvernightDepartureTime(routeDetails.openingTime, routeDetails.estimatedDeparture)
+                              : 'Morning'
+                            }
+                          </div>
+                          {routeDetails.openingTime && (() => {
+                            const { eta, dayIndicator } = calculateOvernightETA(routeDetails.openingTime);
+                            return (
+                              <div className="text-xs text-white/60 mt-1">
+                                {dayIndicator === 'tomorrow' ? 'Tomorrow' : 'Today'} • ETA {eta}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                        <div>
+                          <div className="w-12 h-12 rounded-xl bg-slate-600/30 flex items-center justify-center mx-auto mb-3">
+                            <CreditCard className="w-6 h-6 text-slate-300" />
                           </div>
                           <div className="text-white/60 mb-1">Price per Seat</div>
-                          <div className="text-2xl font-bold text-blue-400">{routeDetails.basePrice || 0} TND</div>
+                          <div className="text-2xl font-bold text-teal-400">{routeDetails.basePrice || 0} TND</div>
                         </div>
                       </div>
                     </CardContent>
@@ -800,7 +849,7 @@ export default function StepByStepBooking() {
                   {/* AI ETD Display */}
                   {routeDetails.etaPrediction && (
                     <ETDDisplay
-                      etaPrediction={routeDetails.etaPrediction}
+                      etaPrediction={routeDetails.etaPrediction || null}
                       showDetails={true}
                       className="mb-6"
                     />
@@ -812,19 +861,19 @@ export default function StepByStepBooking() {
                       <CardContent className="p-8">
                         <div className="text-center space-y-6">
                           <h3 className="text-2xl font-semibold text-white flex items-center justify-center gap-3">
-                            <Users className="w-6 h-6 text-blue-400" />
-                            {t('selectSeats')}
+                            <Users className="w-6 h-6 text-teal-400" />
+                            Select Seats
                           </h3>
 
                           {/* Single Seat Selection */}
                           {routeDetails.availableSeats === 1 ? (
                             <div className="space-y-4">
-                              <div className="inline-flex items-center gap-3 bg-green-500/20 border border-green-500/30 rounded-full px-6 py-3">
-                                <CheckCircle2 className="w-5 h-5 text-green-400" />
-                                <span className="text-green-400 font-semibold">1 seat available</span>
+                              <div className="inline-flex items-center gap-3 bg-teal-500/20 border border-teal-500/30 rounded-full px-6 py-3">
+                                <CheckCircle2 className="w-5 h-5 text-teal-400" />
+                                <span className="text-teal-400 font-semibold">1 seat available</span>
                               </div>
                               <p className="text-white/60 text-lg">
-                                This vehicle has only 1 seat remaining
+                                This vehicle has only 1 seat remaining for overnight travel
                               </p>
                             </div>
                           ) : (
@@ -836,12 +885,12 @@ export default function StepByStepBooking() {
                                   size="icon"
                                   onClick={() => setSelectedSeats(Math.max(1, selectedSeats - 1))}
                                   disabled={selectedSeats <= 1}
-                                  className=" w-14 h-14 rounded-full border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
+                                  className="w-14 h-14 rounded-full border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                                 >
-                                  <Minus className="w-6 h-6 text-orange-400" />
+                                  <Minus className="w-6 h-6" />
                                 </Button>
 
-                                <div className="bg-gradient-to-r from-orange-500/20 to-red-600/20 border border-orange-500/30 rounded-2xl px-8 py-4 min-w-[120px]">
+                                <div className="bg-gradient-to-r from-teal-500/20 to-cyan-500/20 border border-teal-500/30 rounded-2xl px-8 py-4 min-w-[120px]">
                                   <div className="text-4xl font-bold text-white">{selectedSeats}</div>
                                   <div className="text-white/60 text-sm">seats</div>
                                 </div>
@@ -853,14 +902,33 @@ export default function StepByStepBooking() {
                                   disabled={selectedSeats >= (routeDetails.availableSeats || 6)}
                                   className="w-14 h-14 rounded-full border-white/30 text-white hover:bg-white/10 hover:border-white/50 transition-all duration-200 disabled:opacity-50 hover:scale-105 active:scale-95"
                                 >
-                                  <Plus className="w-6 h-6 text-orange-400" />
+                                  <Plus className="w-6 h-6" />
                                 </Button>
                               </div>
 
-                             
+                              {/* Quick Selection Buttons */}
+                              <div className="flex flex-wrap justify-center gap-2">
+                                {[1, 2, 3, 4, 5, 6].map((num) => (
+                                  num <= (routeDetails.availableSeats || 6) && (
+                                    <Button
+                                      key={num}
+                                      variant={selectedSeats === num ? "default" : "outline"}
+                                      size="sm"
+                                      onClick={() => setSelectedSeats(num)}
+                                      className={`px-4 py-2 rounded-full transition-all duration-200 ${
+                                        selectedSeats === num
+                                          ? 'bg-teal-600 hover:bg-teal-700 text-white shadow-lg shadow-teal-600/25'
+                                          : 'border-white/30 text-white hover:bg-white/10 hover:border-white/50'
+                                      }`}
+                                    >
+                                      {num}
+                                    </Button>
+                                  )
+                                ))}
+                              </div>
 
                               <p className="text-white/60 text-lg">
-                                <span className="text-green-400 font-semibold">{routeDetails.availableSeats || 6}</span> seats available
+                                <span className="text-teal-400 font-semibold">{routeDetails.availableSeats || 6}</span> seats available for overnight travel
                               </p>
                             </div>
                           )}
@@ -869,7 +937,7 @@ export default function StepByStepBooking() {
                     </Card>
 
                     {/* Cost Display */}
-                    <Card className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border border-green-500/30 backdrop-blur-sm">
+                    <Card className="bg-gradient-to-r from-slate-800/30 to-slate-700/20 border border-slate-600/30 backdrop-blur-sm">
                       <CardContent className="p-8">
                         <div className="flex justify-between items-center">
                           <div>
@@ -887,7 +955,7 @@ export default function StepByStepBooking() {
 
                     <Button
                       onClick={handleSeatsConfirm}
-                      className="w-full h-14 text-xl font-semibold bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 shadow-lg shadow-green-600/25 transition-all duration-200"
+                      className="w-full h-14 text-xl font-semibold bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 shadow-lg shadow-teal-600/25 transition-all duration-200"
                       disabled={selectedSeats === 0 || selectedSeats > (routeDetails.availableSeats || 0)}
                     >
                       Continue to Confirmation
@@ -905,47 +973,61 @@ export default function StepByStepBooking() {
           <Card className="backdrop-blur-sm bg-white/5 border border-white/10 shadow-xl">
             <CardHeader className="pb-6">
               <CardTitle className="text-2xl text-white flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
-                  <CheckCircle2 className="w-6 h-6 text-green-400" />
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-400" />
                 </div>
-                {t('confirmBooking')}
+                Confirm Your Overnight Booking
               </CardTitle>
               <CardDescription className="text-white/60 text-lg">
-                {t('reviewConfirmBooking')}
+                Please review your overnight booking details before proceeding to payment
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-8">
               {/* Booking Summary */}
               <div className="space-y-4">
-                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
-                  <span className="text-white/60 text-lg">{t('departure')}:</span>
-                  <span className="text-blue-400 font-semibold text-lg">{selectedDeparture.name || selectedDeparture.stationName}</span>
+                <div className="flex justify-between items-center p-5 bg-slate-800/30 rounded-xl border border-slate-600/30">
+                  <span className="text-white/60 text-lg">From:</span>
+                  <span className="text-teal-400 font-semibold text-lg">{selectedDeparture.name || selectedDeparture.stationName}</span>
                 </div>
-                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
-                  <span className="text-white/60 text-lg">{t('destination')}:</span>
-                  <span className="text-purple-400 font-semibold text-lg">{selectedDestination.destinationName}</span>
+                <div className="flex justify-between items-center p-5 bg-slate-800/30 rounded-xl border border-slate-600/30">
+                  <span className="text-white/60 text-lg">To:</span>
+                  <span className="text-cyan-400 font-semibold text-lg">{selectedDestination.destinationName}</span>
                 </div>
-                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
-                  <span className="text-white/60 text-lg">{t('numberOfSeats')}:</span>
-                  <span className="text-green-400 font-semibold text-lg">{selectedSeats}</span>
+                <div className="flex justify-between items-center p-5 bg-slate-800/30 rounded-xl border border-slate-600/30">
+                  <span className="text-white/60 text-lg">Number of Seats:</span>
+                  <span className="text-emerald-400 font-semibold text-lg">{selectedSeats}</span>
                 </div>
-                <div className="flex justify-between items-center p-5 bg-white/5 rounded-xl border border-white/20">
-                  <span className="text-white/60 text-lg">{t('pricePerSeat')}:</span>
-                  <span className="text-blue-400 font-semibold text-lg">{routeDetails.basePrice} TND</span>
+                <div className="flex justify-between items-center p-5 bg-slate-800/30 rounded-xl border border-slate-600/30">
+                  <span className="text-white/60 text-lg">Price per Seat:</span>
+                  <span className="text-teal-400 font-semibold text-lg">{routeDetails.basePrice} TND</span>
+                </div>
+                <div className="flex justify-between items-center p-5 bg-slate-800/30 rounded-xl border border-slate-600/30">
+                  <span className="text-white/60 text-lg">Station Opening:</span>
+                  <div className="text-right">
+                    <div className="text-cyan-400 font-semibold text-lg">{routeDetails.openingTime || '06:00'}</div>
+                    {routeDetails.openingTime && (() => {
+                      const { eta, dayIndicator } = calculateOvernightETA(routeDetails.openingTime);
+                      return (
+                        <div className="text-xs text-white/50">
+                          {dayIndicator === 'tomorrow' ? 'Tomorrow' : 'Today'} • ETA {eta}
+                        </div>
+                      );
+                    })()}
+                  </div>
                 </div>
                 {/* AI ETD in Confirmation */}
                 {routeDetails.etaPrediction && (
-                  <div className="p-5 bg-white/5 rounded-xl border border-white/20">
+                  <div className="p-5 bg-slate-800/30 rounded-xl border border-slate-600/30">
                     <span className="text-white/60 text-lg block mb-3">AI-Powered ETD:</span>
                     <ETDDisplay
-                      etaPrediction={routeDetails.etaPrediction}
+                      etaPrediction={routeDetails.etaPrediction || null}
                       compact={true}
                     />
                   </div>
                 )}
-                <div className="flex justify-between items-center p-6 bg-gradient-to-r from-green-500/10 to-blue-500/10 rounded-xl border border-green-500/30">
-                  <span className="text-xl font-semibold text-white">{t('totalPrice')}:</span>
-                  <span className="text-3xl font-bold text-green-400">{selectedSeats * routeDetails.basePrice} TND</span>
+                <div className="flex justify-between items-center p-6 bg-gradient-to-r from-slate-800/40 to-slate-700/30 rounded-xl border border-slate-600/30">
+                  <span className="text-xl font-semibold text-white">Total Amount:</span>
+                  <span className="text-3xl font-bold text-emerald-400">{selectedSeats * routeDetails.basePrice} TND</span>
                 </div>
               </div>
 
@@ -953,10 +1035,10 @@ export default function StepByStepBooking() {
               <Card className="backdrop-blur-sm bg-white/5 border border-white/10">
                 <CardHeader className="pb-6">
                   <CardTitle className="text-2xl text-white flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-xl bg-blue-500/20 flex items-center justify-center">
-                      <Navigation className="w-6 h-6 text-blue-400" />
+                    <div className="w-12 h-12 rounded-xl bg-slate-600/30 flex items-center justify-center">
+                      <Navigation className="w-6 h-6 text-slate-300" />
                     </div>
-                    Your Journey Route
+                    Your Overnight Journey Route
                   </CardTitle>
                   <CardDescription className="text-white/60 text-lg">
                     Visual route from {selectedDeparture.name || selectedDeparture.stationName} to {selectedDestination.destinationName}
@@ -980,29 +1062,29 @@ export default function StepByStepBooking() {
               <div className="space-y-4">
                 {isAuthenticated ? (
                   <Button
-                    onClick={createBooking}
+                    onClick={createOvernightBooking}
                     disabled={isCreatingBooking}
-                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 shadow-lg shadow-red-600/25 transition-all duration-200 disabled:from-gray-600 disabled:to-gray-700"
+                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-teal-600 to-cyan-700 hover:from-teal-700 hover:to-cyan-800 shadow-lg shadow-teal-600/25 transition-all duration-200 disabled:from-gray-600 disabled:to-gray-700"
                   >
                     {isCreatingBooking ? (
                       <>
                         <Loader className="w-6 h-6 mr-3 animate-spin" />
-                        {t('processingBooking')}
+                        Creating Overnight Booking...
                       </>
                     ) : (
                       <>
-                        <CreditCard className="w-6 h-6 mr-3" />
-                        {t('confirm')} {t('bookTrip')} & Pay {selectedSeats * routeDetails.basePrice} TND
+                        <Moon className="w-6 h-6 mr-3" />
+                        Book Overnight Trip & Pay {selectedSeats * routeDetails.basePrice} TND
                       </>
                     )}
                   </Button>
                 ) : (
                   <Button
                     onClick={() => {/* Redirect to login */}}
-                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 shadow-lg shadow-blue-600/25 transition-all duration-200"
+                    className="w-full h-16 text-xl font-semibold bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-700 hover:to-slate-800 shadow-lg shadow-slate-600/25 transition-all duration-200"
                   >
                     <User className="w-6 h-6 mr-3" />
-                    Login to Complete Booking
+                    Login to Complete Overnight Booking
                   </Button>
                 )}
 

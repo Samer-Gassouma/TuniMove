@@ -5,24 +5,32 @@ import { useRouter } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  ArrowLeft, 
-  Calendar, 
-  Clock, 
-  Users, 
-  Navigation, 
-  CreditCard, 
-  CheckCircle2, 
-  XCircle, 
-  Clock3, 
+import {
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Users,
+  Navigation,
+  CreditCard,
+  CheckCircle2,
+  XCircle,
+  Clock3,
   MapPin,
   Ticket,
   History,
-  RefreshCw
+  RefreshCw,
+  ArrowRight,
+  QrCode,
+  Hexagon,
+  Cpu,
+  Terminal,
+  Network
 } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import { apiClient } from "@/lib/api";
 import dynamic from "next/dynamic";
+import { useLanguage } from "@/lib/hooks/useLanguage";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 const StationMap = dynamic(() => import("@/components/map/StationMap"), {
   ssr: false,
@@ -64,6 +72,7 @@ interface Booking {
 }
 
 export default function BookingHistoryPage() {
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -105,7 +114,7 @@ export default function BookingHistoryPage() {
     setError(null);
 
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('userToken');
       if (!token) {
         router.push('/auth/login');
         return;
@@ -151,17 +160,17 @@ export default function BookingHistoryPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'PAID':
-        return 'bg-green-500/20 border-green-500/40 text-green-400';
+        return 'bg-gradient-to-r from-orange-500/20 to-red-600/20 border-orange-500/40 text-orange-400';
       case 'COMPLETED':
-        return 'bg-blue-500/20 border-blue-500/40 text-blue-400';
+        return 'bg-gradient-to-r from-emerald-500/20 to-green-600/20 border-emerald-500/40 text-emerald-400';
       case 'PENDING':
-        return 'bg-yellow-500/20 border-yellow-500/40 text-yellow-400';
+        return 'bg-gradient-to-r from-amber-500/20 to-yellow-600/20 border-amber-500/40 text-amber-400';
       case 'FAILED':
-        return 'bg-red-500/20 border-red-500/40 text-red-400';
+        return 'bg-gradient-to-r from-red-500/20 to-pink-600/20 border-red-500/40 text-red-400';
       case 'CANCELLED':
-        return 'bg-gray-500/20 border-gray-500/40 text-gray-400';
+        return 'bg-gradient-to-r from-gray-500/20 to-slate-600/20 border-gray-500/40 text-gray-400';
       default:
-        return 'bg-gray-500/20 border-gray-500/40 text-gray-400';
+        return 'bg-gradient-to-r from-gray-500/20 to-slate-600/20 border-gray-500/40 text-gray-400';
     }
   };
 
@@ -201,12 +210,11 @@ export default function BookingHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <ParticleBackground />
-        <Card className="w-full max-w-md backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <Card className="w-full max-w-md backdrop-blur-sm bg-gradient-to-br from-gray-900/90 to-black/90 border border-orange-500/30 shadow-lg shadow-orange-500/20">
           <CardContent className="p-8 text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-400 mx-auto mb-4"></div>
-            <p className="text-white">Loading your booking history...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-400 mx-auto mb-4"></div>
+            <p className="text-white font-mono">{t('loading')} {t('myBookingHistory')}...</p>
           </CardContent>
         </Card>
       </div>
@@ -214,52 +222,63 @@ export default function BookingHistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 p-4">
-      <ParticleBackground />
-      
-      <div className="relative z-10 max-w-4xl mx-auto pt-8">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <Button
-              onClick={() => router.push('/dashboard')}
-              variant="outline"
-              size="sm"
-              className="border-slate-600 hover:bg-slate-700"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2 flex items-center gap-3">
-                <History className="w-8 h-8 text-blue-400" />
-                Booking History
-              </h1>
-              <p className="text-gray-400">View all your trip bookings • Click on any booking to see details</p>
+    <div className="min-h-screen bg-black">
+      {/* Cyberpunk Header */}
+      <div className="sticky top-0 z-50 bg-black/95 backdrop-blur-xl border-b border-orange-500/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center space-x-4">
+              <Button
+                onClick={() => router.push('/user/dashboard')}
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 border border-orange-500/20 font-mono"
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                DASHBOARD
+              </Button>
+              <div className="w-px h-6 bg-orange-500/30"></div>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/25">
+                  <Hexagon className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent font-mono">{t('tripHistory')}</h1>
+                  <p className="text-gray-400 text-sm font-mono">{t('allYourJourneys')}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <LanguageSwitcher />
+              <Button
+                onClick={fetchBookingHistory}
+                variant="ghost"
+                size="sm"
+                className="text-gray-400 hover:text-orange-400 hover:bg-orange-500/10 border border-orange-500/20 font-mono"
+                disabled={loading}
+              >
+                <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+                {t('refresh')}
+              </Button>
             </div>
           </div>
-          
-          <Button
-            onClick={fetchBookingHistory}
-            variant="outline"
-            size="sm"
-            className="border-slate-600 hover:bg-slate-700"
-            disabled={loading}
-          >
-            <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            Refresh
-          </Button>
         </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Error State */}
         {error && (
-          <Card className="mb-6 backdrop-blur-xl bg-gradient-to-br from-red-800/40 to-red-900/40 border border-red-600/50">
+          <Card className="mb-6 backdrop-blur-sm bg-gradient-to-br from-gray-900/90 to-black/90 border border-orange-500/30 shadow-lg shadow-orange-500/10">
             <CardContent className="p-6 text-center">
-              <XCircle className="w-16 h-16 text-red-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">Error Loading History</h3>
-              <p className="text-red-400 mb-4">{error}</p>
-              <Button onClick={fetchBookingHistory} className="bg-red-600 hover:bg-red-700">
-                Try Again
+              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-orange-500/10 to-red-600/10 border border-orange-500/20 flex items-center justify-center mx-auto mb-4">
+                <XCircle className="w-8 h-8 text-orange-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2 font-mono">{t('errorLoadingHistory')}</h3>
+              <p className="text-orange-400 mb-4 font-mono">{error}</p>
+              <Button onClick={fetchBookingHistory} className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 border border-orange-500/30 text-white font-mono">
+                {t('tryAgain')}
               </Button>
             </CardContent>
           </Card>
@@ -267,194 +286,156 @@ export default function BookingHistoryPage() {
 
         {/* Bookings List */}
         {bookings.length === 0 && !error ? (
-          <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
-            <CardContent className="p-8 text-center">
-              <Ticket className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">No Bookings Yet</h3>
-              <p className="text-gray-400 mb-6">You haven't made any trip bookings yet.</p>
-              <Button 
-                onClick={() => router.push('/book-trip')}
-                className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+          <Card className="bg-gradient-to-br from-gray-900/90 to-black/90 border border-orange-500/30 shadow-lg shadow-orange-500/10">
+            <CardContent className="p-12 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-red-600/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-orange-500/30">
+                <Hexagon className="w-10 h-10 text-orange-400" />
+              </div>
+              <h3 className="text-2xl font-semibold text-white mb-3 font-mono">{t('noTripsYet')}</h3>
+              <p className="text-gray-400 mb-8 max-w-md mx-auto font-mono">
+                {t('startJourneyWithUs')}
+              </p>
+              <Button
+                onClick={() => router.push('/user/book-trip')}
+                className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white px-8 py-3 font-mono"
               >
-                Book Your First Trip
+                {t('bookYourFirstTrip')}
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-6">
             {bookings.map((booking) => (
-              <Card 
-                key={booking.id} 
-                className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 cursor-pointer group"
-                onClick={() => router.push(`/booking-details/${booking.paymentReference || booking.id}`)}
+              <Card
+                key={booking.id}
+                className="group relative overflow-hidden bg-slate-800/30 border-slate-700/50 hover:border-slate-600/50 transition-all duration-300 cursor-pointer hover:shadow-lg hover:shadow-slate-900/50"
+                onClick={() => router.push(`/user/booking-details/${booking.paymentReference || booking.id}`)}
               >
-                <CardHeader className="p-4 sm:p-6">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <CardTitle className="text-lg text-white group-hover:text-blue-400 transition-colors">
-                          {booking.departureStation.name} → {booking.destinationStation.name}
-                        </CardTitle>
-                        <Badge variant="outline" className={`${getStatusColor(booking.status)} text-xs`}>
-                          {getStatusIcon(booking.status)}
-                          <span className="ml-1">{booking.status}</span>
-                        </Badge>
+                {/* Ticket perforation effect */}
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-950 rounded-full -ml-3 border-2 border-slate-700/50"></div>
+                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-6 h-6 bg-slate-950 rounded-full -mr-3 border-2 border-slate-700/50"></div>
+                
+                <CardContent className="p-4 sm:p-6 lg:p-8">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 sm:gap-0 mb-4 sm:mb-6">
+                    <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
+                      <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-600/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                        <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-blue-400" />
                       </div>
-                      <CardDescription className="text-gray-400">
-                        Booking ID: {booking.id} • Code: {booking.verificationCode}
-                      </CardDescription>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-2xl font-bold text-green-400">{booking.totalAmount} TND</div>
-                      <div className="text-sm text-gray-400">{booking.seatsBooked} seat(s)</div>
-                    </div>
-                  </div>
-                </CardHeader>
-
-                <CardContent className="p-4 sm:p-6 pt-0">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                    {/* Journey Date */}
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-blue-400" />
-                      <div>
-                        <div className="text-sm text-gray-400">Journey Date</div>
-                        <div className="text-white font-medium">{formatDate(booking.journeyDate)}</div>
-                        <div className="text-xs text-gray-500">{formatTime(booking.journeyDate)}</div>
-                      </div>
-                    </div>
-
-                    {/* Passengers */}
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-purple-400" />
-                      <div>
-                        <div className="text-sm text-gray-400">Passengers</div>
-                        <div className="text-white font-medium">{booking.seatsBooked}</div>
-                      </div>
-                    </div>
-
-                    {/* Booked Date */}
-                    <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-orange-400" />
-                      <div>
-                        <div className="text-sm text-gray-400">Booked On</div>
-                        <div className="text-white font-medium">{formatDate(booking.createdAt)}</div>
-                        <div className="text-xs text-gray-500">{formatTime(booking.createdAt)}</div>
-                      </div>
-                    </div>
-
-                    {/* Payment Status */}
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-4 h-4 text-green-400" />
-                      <div>
-                        <div className="text-sm text-gray-400">Payment</div>
-                        <div className="text-white font-medium">
-                          {booking.paymentProcessedAt ? 'Completed' : 'Pending'}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-3 mb-1">
+                          <h3 className="text-lg sm:text-xl font-semibold text-white group-hover:text-slate-300 transition-colors truncate">
+                            {booking.departureStation.name}
+                          </h3>
+                          <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 hidden sm:block" />
+                          <h3 className="text-lg sm:text-xl font-semibold text-white group-hover:text-slate-300 transition-colors truncate">
+                            {booking.destinationStation.name}
+                          </h3>
                         </div>
-                        {booking.paymentReference && (
-                          <div className="text-xs text-gray-500 font-mono">{booking.paymentReference}</div>
-                        )}
+                        <p className="text-slate-400 text-xs sm:text-sm">
+                          {booking.departureStation.governorate} → {booking.destinationStation.governorate}
+                        </p>
                       </div>
+                    </div>
+                    
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start sm:text-right gap-2 sm:gap-0">
+                      <Badge className={`${getStatusColor(booking.status)} px-2 py-1 sm:px-3 sm:py-1.5 text-xs sm:text-sm mb-0 sm:mb-2`}>
+                        {getStatusIcon(booking.status)}
+                        <span className="ml-1 sm:ml-2 font-medium">{booking.status}</span>
+                      </Badge>
+                      <div className="text-xl sm:text-2xl font-bold text-white">{booking.totalAmount} <span className="text-xs sm:text-sm text-slate-400">TND</span></div>
                     </div>
                   </div>
 
-                  {/* Route Details */}
-                  <div className="mb-4 p-3 bg-black/20 rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-blue-400" />
-                        <span className="text-blue-400 font-medium">{booking.departureStation.name}</span>
-                        <span className="text-gray-400 text-sm">({booking.departureStation.governorate})</span>
+                  {/* Trip Details Grid */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 lg:gap-6 mb-4 sm:mb-6">
+                    <div className="text-center">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-700/50 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                        <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                       </div>
-                      <Navigation className="w-4 h-4 text-gray-400" />
-                      <div className="flex items-center gap-2">
-                        <span className="text-purple-400 font-medium">{booking.destinationStation.name}</span>
-                        <span className="text-gray-400 text-sm">({booking.destinationStation.governorate})</span>
-                        <MapPin className="w-4 h-4 text-purple-400" />
+                      <div className="text-slate-400 text-xs uppercase tracking-wide mb-1">Journey Date</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">{formatDate(booking.journeyDate)}</div>
+                      <div className="text-slate-400 text-xs sm:text-sm">{formatTime(booking.journeyDate)}</div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-700/50 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                        <Users className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
                       </div>
+                      <div className="text-slate-400 text-xs uppercase tracking-wide mb-1">Passengers</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">{booking.seatsBooked}</div>
+                      <div className="text-slate-400 text-xs sm:text-sm">{booking.seatsBooked === 1 ? 'seat' : 'seats'}</div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-700/50 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                        <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-amber-400" />
+                      </div>
+                      <div className="text-slate-400 text-xs uppercase tracking-wide mb-1">Booked</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">{formatDate(booking.createdAt)}</div>
+                      <div className="text-slate-400 text-xs sm:text-sm">{formatTime(booking.createdAt)}</div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-700/50 rounded-lg sm:rounded-xl flex items-center justify-center mx-auto mb-1 sm:mb-2">
+                        <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400" />
+                      </div>
+                      <div className="text-slate-400 text-xs uppercase tracking-wide mb-1">Payment</div>
+                      <div className="text-white font-semibold text-sm sm:text-base">
+                        {booking.paymentProcessedAt ? 'Completed' : 'Pending'}
+                      </div>
+                      {booking.paymentReference && (
+                        <div className="text-slate-400 text-xs font-mono">{booking.paymentReference.slice(-6)}</div>
+                      )}
                     </div>
                   </div>
 
-                  {/* Compact Route Map */}
-                  <div className="mb-4">
-                    <div className="h-32 rounded-lg overflow-hidden border border-slate-600/30">
-                      <StationMap
-                        stations={[
-                          {
-                            id: booking.departureStation.id,
-                            name: booking.departureStation.name,
-                            governorate: booking.departureStation.governorate,
-                            delegation: booking.departureStation.delegation || '',
-                            latitude: getStationCoordinates(booking.departureStation.id).latitude,
-                            longitude: getStationCoordinates(booking.departureStation.id).longitude,
-                            isOnline: true
-                          }
-                        ]}
-                        destinations={[
-                          {
-                            destinationId: booking.destinationStation.id,
-                            destinationName: booking.destinationStation.name,
-                            governorate: booking.destinationStation.governorate,
-                            delegation: booking.destinationStation.delegation || '',
-                            totalVehicles: 1,
-                            availableSeats: booking.seatsBooked,
-                            estimatedDeparture: booking.journeyDate,
-                            basePrice: parseFloat(String(booking.totalAmount || '0')),
-                            vehicles: [],
-                            latitude: getStationCoordinates(booking.destinationStation.id).latitude,
-                            longitude: getStationCoordinates(booking.destinationStation.id).longitude
-                          }
-                        ]}
-                        selectedDeparture={{
-                          id: booking.departureStation.id,
-                          name: booking.departureStation.name,
-                          governorate: booking.departureStation.governorate,
-                          delegation: booking.departureStation.delegation || '',
-                          latitude: getStationCoordinates(booking.departureStation.id).latitude,
-                          longitude: getStationCoordinates(booking.departureStation.id).longitude,
-                          isOnline: true
+                  {/* Verification Code */}
+                  <div className="bg-slate-700/30 rounded-lg sm:rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-0">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                          <QrCode className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+                        </div>
+                        <div>
+                          <div className="text-slate-400 text-xs sm:text-sm">Verification Code</div>
+                          <div className="text-white font-mono font-bold text-base sm:text-lg tracking-wider">
+                            {booking.verificationCode}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          router.push(`/user/booking-details/${booking.paymentReference || booking.id}`);
                         }}
-                        selectedDestination={{
-                          destinationId: booking.destinationStation.id,
-                          destinationName: booking.destinationStation.name,
-                          governorate: booking.destinationStation.governorate,
-                          delegation: booking.destinationStation.delegation || '',
-                          totalVehicles: 1,
-                          availableSeats: booking.seatsBooked,
-                          estimatedDeparture: booking.journeyDate,
-                          basePrice: parseFloat(String(booking.totalAmount || '0')),
-                          vehicles: [],
-                          latitude: getStationCoordinates(booking.destinationStation.id).latitude,
-                          longitude: getStationCoordinates(booking.destinationStation.id).longitude
-                        }}
-                        onStationSelect={() => {}} // Disabled in view mode
-                        onDestinationSelect={() => {}} // Disabled in view mode
-                        showRoute={true}
-                        mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN || ''}
-                      />
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-sm sm:text-base px-4 sm:px-6 py-2"
+                      >
+                        View Ticket
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
                     </div>
                   </div>
 
-                  {/* View Details Button */}
-                  <div className="flex justify-end">
-                    <Button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/booking-details/${booking.paymentReference || booking.id}`);
-                      }}
-                      variant="outline"
-                      size="sm"
-                      className="border-blue-600 text-blue-400 hover:bg-blue-600/10 group-hover:border-blue-500"
-                    >
-                      View Details
-                      <Navigation className="w-3 h-3 ml-1" />
-                    </Button>
+                  {/* Quick Info */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 text-xs sm:text-sm">
+                    <div className="flex items-center space-x-2 sm:space-x-4">
+                      <span className="text-slate-400">
+                        Booking ID: <span className="font-mono text-slate-300">{booking.id.slice(-8)}</span>
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 self-start sm:self-auto">
+                      <span className="text-slate-400">Tap to view details</span>
+                      <ArrowRight className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400 group-hover:text-slate-300 group-hover:translate-x-1 transition-all" />
+                    </div>
                   </div>
                 </CardContent>
               </Card>
             ))}
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 } 

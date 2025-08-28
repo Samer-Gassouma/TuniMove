@@ -5,14 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Building2, ArrowLeft, Users, AlertCircle, Shield, Phone, Lock } from 'lucide-react'
+import { Building2, ArrowLeft, Users, AlertCircle, Shield, Phone, Lock, Hexagon, Cpu, Terminal, Network } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/hooks/useLanguage'
 
 type LoginStep = 'cin' | 'sms' | 'success'
 type UserRole = 'admin' | 'supervisor' | 'worker' | null
 
 export default function PartnerLoginPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [step, setStep] = useState<LoginStep>('cin')
   const [cinDigits, setCinDigits] = useState<string[]>(new Array(8).fill(''))
   const [smsCode, setSmsCode] = useState('')
@@ -146,7 +148,7 @@ export default function PartnerLoginPage() {
     
     // Validate CIN
     if (fullCin.length !== 8) {
-      setError('Please enter all 8 digits of your CIN')
+      setError(t('pleaseEnterAll8Digits'))
       setLoading(false)
       return
     }
@@ -170,10 +172,10 @@ export default function PartnerLoginPage() {
         setPhoneNumber(data.phoneNumber || 'your registered phone')
         setStep('sms')
       } else {
-        setError(data.message || 'CIN not found or invalid')
+        setError(data.message || t('cinNotFoundOrInvalid'))
       }
     } catch (err) {
-      setError('Network error. Please check your connection and try again.')
+      setError(t('networkErrorCheckConnection'))
     } finally {
       setLoading(false)
     }
@@ -226,11 +228,11 @@ export default function PartnerLoginPage() {
           }
         }, 2000)
       } else {
-        setError(data.message || 'Invalid SMS code')
+        setError(data.message || t('invalidSmsCode'))
       }
     } catch (err) {
       console.error('Login verification error:', err)
-      setError('Network error. Please try again.')
+      setError(t('networkErrorCheckConnection'))
     } finally {
       setLoading(false)
     }
@@ -258,19 +260,19 @@ export default function PartnerLoginPage() {
         )}
       </div>
       <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-        {isAdminPortal ? 'Admin Portal' : 'Partner Login'}
+        {isAdminPortal ? t('adminPortal') : t('partnerLogin')}
       </h1>
       <p className="text-gray-400 mb-8">
-        {isAdminPortal 
-          ? 'Enter your admin credentials to access the system' 
-          : 'Enter your 8-digit CIN number'
+        {isAdminPortal
+          ? t('enterAdminCredentials')
+          : t('enter8DigitCin')
         }
       </p>
 
       <form onSubmit={handleCinSubmit} className="space-y-6">
         <div>
           <Label className="text-white font-medium mb-4 block">
-            CIN Number {isAdminPortal && <span className="text-red-400">(Admin Mode)</span>}
+            {t('cinNumber')} {isAdminPortal && <span className="text-red-400">{t('adminMode')}</span>}
           </Label>
           
           {/* 8-box CIN input */}
@@ -291,7 +293,7 @@ export default function PartnerLoginPage() {
                 className={`w-12 h-12 text-center text-xl font-bold rounded-lg border focus:outline-none focus:ring-2 transition-all ${
                   isAdminPortal
                     ? 'bg-red-600/20 border-red-500/30 text-red-400 focus:border-red-500 focus:ring-red-500/50'
-                    : 'bg-black/20 border-white/20 text-white focus:border-blue-500 focus:ring-blue-500/50'
+                    : 'bg-black/20 border-orange-500/30 text-white focus:border-orange-500 focus:ring-orange-500/50'
                 }`}
                 placeholder=""
               />
@@ -315,18 +317,18 @@ export default function PartnerLoginPage() {
           className={`w-full py-3 text-lg font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 ${
             isAdminPortal
               ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border border-orange-500/30 shadow-2xl shadow-orange-500/20'
           }`}
         >
           {loading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Sending SMS...
+              {t('sendingSms')}
             </>
           ) : (
             <>
               <Phone className="mr-2 h-5 w-5" />
-              {isAdminPortal ? 'Send Admin SMS' : 'Send SMS Code'}
+              {isAdminPortal ? t('sendAdminSms') : t('sendSmsCode')}
             </>
           )}
         </Button>
@@ -343,28 +345,28 @@ export default function PartnerLoginPage() {
         <Phone className={`h-8 w-8 ${isAdminPortal ? 'text-red-400' : 'text-green-400'}`} />
       </div>
       <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-        Verify SMS Code
+        {t('verifySmsCode')}
       </h1>
       <p className="text-gray-400 mb-2">
-        We sent a 6-digit code to {phoneNumber}
+        {t('weSent6DigitCode')} {phoneNumber}
       </p>
       <p className="text-xs text-gray-500 mb-8">
-        Enter the code to complete your login
+        {t('enterCodeToComplete')}
       </p>
 
       <form onSubmit={handleSmsSubmit} className="space-y-6">
         <div>
           <Label htmlFor="smsCode" className="text-white font-medium">
-            SMS Verification Code
+            {t('smsVerificationCode')}
           </Label>
           <Input
             id="smsCode"
             type="text"
             maxLength={6}
-            placeholder="Enter 6-digit code"
+            placeholder={t('enter6DigitCode')}
             value={smsCode}
             onChange={(e) => setSmsCode(e.target.value.replace(/\D/g, ''))}
-            className="mt-2 bg-black/20 border-white/20 text-white placeholder-gray-400 focus:border-blue-500 focus:ring-blue-500 text-center text-2xl font-mono tracking-widest"
+            className="mt-2 bg-black/20 border-orange-500/30 text-white placeholder-gray-400 focus:border-orange-500 focus:ring-orange-500/50 text-center text-2xl font-mono tracking-widest"
             required
           />
         </div>
@@ -384,18 +386,18 @@ export default function PartnerLoginPage() {
           className={`w-full py-3 text-lg font-semibold rounded-lg transition-all duration-200 disabled:opacity-50 ${
             isAdminPortal
               ? 'bg-red-600 hover:bg-red-700 text-white'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border border-orange-500/30 shadow-2xl shadow-orange-500/20'
           }`}
         >
           {loading ? (
             <>
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Verifying...
+              {t('verifying')}
             </>
           ) : (
             <>
               <Lock className="mr-2 h-5 w-5" />
-              Verify & Login
+              {t('verifyAndLogin')}
             </>
           )}
         </Button>
@@ -405,9 +407,9 @@ export default function PartnerLoginPage() {
           variant="outline"
           onClick={() => handleCinSubmit(new Event('submit') as any)}
           disabled={loading}
-          className="w-full border-white/20 text-gray-400 hover:bg-white/10"
+          className="w-full border-orange-500/30 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 font-mono"
         >
-          Resend SMS Code
+          {t('resendSmsCode')}
         </Button>
       </form>
     </div>
@@ -420,10 +422,10 @@ export default function PartnerLoginPage() {
         <Users className="h-8 w-8 text-green-400" />
       </div>
       <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
-        Welcome Back!
+        {t('welcomeBack')}
       </h1>
       <p className="text-gray-400 mb-6">
-        Login successful. Redirecting to your {userRole} dashboard...
+        {t('loginSuccessful')} {userRole} dashboard...
       </p>
       <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-6">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-400 mx-auto"></div>
@@ -438,12 +440,12 @@ export default function PartnerLoginPage() {
         <div className={`absolute inset-0 ${
           isAdminPortal 
             ? 'bg-gradient-to-br from-red-900/20 via-black/80 to-red-950/20'
-            : 'bg-gradient-to-br from-blue-900/20 via-black/80 to-blue-950/20'
+            : 'bg-gradient-to-br from-orange-900/20 via-black/80 to-red-950/20'
         }`} />
         <div className="absolute inset-0 opacity-20" style={{
           backgroundImage: `
-            linear-gradient(${isAdminPortal ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)'} 1px, transparent 1px),
-            linear-gradient(90deg, ${isAdminPortal ? 'rgba(239, 68, 68, 0.1)' : 'rgba(59, 130, 246, 0.1)'} 1px, transparent 1px)
+            linear-gradient(${isAdminPortal ? 'rgba(239, 68, 68, 0.1)' : 'rgba(249, 115, 22, 0.1)'} 1px, transparent 1px),
+            linear-gradient(90deg, ${isAdminPortal ? 'rgba(239, 68, 68, 0.1)' : 'rgba(239, 68, 68, 0.1)'} 1px, transparent 1px)
           `,
           backgroundSize: '100px 100px'
         }} />
@@ -451,20 +453,23 @@ export default function PartnerLoginPage() {
 
       <div className="relative z-10">
         {/* Navigation */}
-        <nav className="bg-black/80 backdrop-blur-md border-b border-white/10">
+        <nav className="bg-black/80 backdrop-blur-md border-b border-orange-500/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-white">
-                  Louaj {isAdminPortal && <span className="text-red-400">Admin</span>}
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30">
+                  <Hexagon className="h-5 w-5 text-orange-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white font-mono">
+                  LOUAJ_SYSTEM {isAdminPortal && <span className="text-red-400 font-mono">ADMIN</span>}
                 </h1>
               </div>
               <button
                 onClick={handleBackClick}
-                className="text-white hover:text-blue-400 transition-colors font-medium flex items-center gap-2"
+                className="text-white hover:text-orange-400 transition-colors font-medium flex items-center gap-2 font-mono"
               >
                 <ArrowLeft className="h-4 w-4" />
-                {step === 'sms' ? 'Back to CIN' : 'Back to Partnership'}
+                {step === 'sms' ? t('backToCin') : t('backToPartnership')}
               </button>
             </div>
           </div>
@@ -473,7 +478,7 @@ export default function PartnerLoginPage() {
         {/* Login Section */}
         <section className="py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-md mx-auto">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-orange-500/30 rounded-xl p-8 hover:shadow-2xl hover:shadow-orange-500/20">
               {step === 'cin' && renderCinStep()}
               {step === 'sms' && renderSmsStep()}
               {step === 'success' && renderSuccessStep()}
@@ -481,29 +486,29 @@ export default function PartnerLoginPage() {
               {step === 'cin' && (
                 <>
                   <div className="mt-8 text-center">
-                    <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4">
-                      <h3 className="text-blue-400 font-semibold mb-2">
-                        Don't have a CIN number?
+                    <div className="bg-orange-600/10 border border-orange-500/30 rounded-lg p-4">
+                      <h3 className="text-orange-400 font-semibold mb-2 font-mono">
+                        {t('dontHaveCin')}
                       </h3>
-                      <p className="text-gray-300 text-sm mb-4">
-                        If you're not yet in our partnership program, you need to apply first.
+                      <p className="text-gray-300 text-sm mb-4 font-mono">
+                        {t('notYetInProgram')}
                       </p>
                       <Button
                         onClick={() => router.push('/station-partnership/request-creation')}
                         variant="outline"
-                        className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                        className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 font-mono"
                       >
-                        <Building2 className="mr-2 h-4 w-4" />
-                        Apply for Partnership
+                        <Terminal className="mr-2 h-4 w-4" />
+                        {t('applyForPartnership')}
                       </Button>
                     </div>
                   </div>
 
                   <div className="mt-6 text-center">
-                    <p className="text-gray-400 text-sm">
-                      Need help? Contact our partnership team at{' '}
-                      <a href="mailto:partnerships@louaj.tn" className="text-blue-400 hover:text-blue-300">
-                        partnerships@louaj.tn
+                    <p className="text-gray-400 text-sm font-mono">
+                      {t('needHelpContact')}{' '}
+                      <a href={`mailto:${t('partnershipsEmail')}`} className="text-orange-400 hover:text-orange-300">
+                        {t('partnershipsEmail')}
                       </a>
                     </p>
                   </div>

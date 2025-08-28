@@ -25,7 +25,11 @@ import {
   Car,
   Route,
   FileText,
-  Headphones
+  Headphones,
+  Hexagon,
+  Cpu,
+  Terminal,
+  Network
 } from 'lucide-react'
 
 interface Station {
@@ -432,29 +436,31 @@ export default function SupervisorDashboard() {
 
       <div className="relative z-10">
         {/* Navigation */}
-        <nav className="bg-black/80 backdrop-blur-md border-b border-white/10">
+        <nav className="bg-black/80 backdrop-blur-md border-b border-cyan-500/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <Shield className="h-8 w-8 text-blue-400 mr-3" />
-                <h1 className="text-2xl font-bold text-white">
-                  Louaj <span className="text-blue-400">Supervisor</span>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30">
+                  <Hexagon className="h-5 w-5 text-cyan-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white font-mono">
+                  LOUAJ_SYSTEM <span className="text-cyan-400 font-mono">SUPERVISOR</span>
                 </h1>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-gray-400">
+                <span className="text-gray-400 font-mono">
                   {userProfile.firstName} {userProfile.lastName}
                 </span>
-                <span className="text-sm text-blue-400">
+                <span className="text-sm text-cyan-400 font-mono">
                   {station?.name}
                 </span>
                 <Button
                   onClick={handleLogout}
                   variant="outline"
-                  className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                  className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 font-mono"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  LOGOUT
                 </Button>
               </div>
             </div>
@@ -465,18 +471,18 @@ export default function SupervisorDashboard() {
         <main className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold text-white mb-2">Supervisor Dashboard</h2>
-              <p className="text-gray-400">Managing {station?.name}</p>
+              <h2 className="text-3xl font-bold text-white mb-2 font-mono">SUPERVISOR_DASHBOARD</h2>
+              <p className="text-gray-400 font-mono">MANAGING {station?.name}</p>
             </div>
 
             {/* Station Status & Quick Actions */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               {/* Station Status Card */}
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/20">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center">
+                  <CardTitle className="text-white flex items-center font-mono">
                     <div className={`h-3 w-3 rounded-full mr-2 ${station?.isOnline ? 'bg-green-400' : 'bg-red-400'}`}></div>
-                    Station Status
+                    STATION_STATUS
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -520,11 +526,13 @@ export default function SupervisorDashboard() {
               </Card>
 
               {/* Location Card */}
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/20">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <MapPin className="h-5 w-5 text-blue-400 mr-2" />
-                    Location
+                  <CardTitle className="text-white flex items-center font-mono">
+                    <div className="w-6 h-6 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30 mr-2">
+                      <MapPin className="h-5 w-5 text-cyan-400" />
+                    </div>
+                    LOCATION
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -562,22 +570,24 @@ export default function SupervisorDashboard() {
               </Card>
 
               {/* App Management Card */}
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/20">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center justify-between">
+                  <CardTitle className="text-white flex items-center justify-between font-mono">
                     <span className="flex items-center">
-                      <Download className="h-5 w-5 text-blue-400 mr-2" />
-                      Desktop App
+                      <div className="w-6 h-6 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30 mr-2">
+                        <Download className="h-5 w-5 text-purple-400" />
+                      </div>
+                      DESKTOP_APP
                     </span>
                     <Button 
                       onClick={checkInstalledApp}
                       variant="outline"
                       size="sm"
                       disabled={checkingApp}
-                      className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                      className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 font-mono"
                     >
                       <RefreshCw className={`h-4 w-4 mr-2 ${checkingApp ? 'animate-spin' : ''}`} />
-                      {checkingApp ? 'Checking...' : 'Check'}
+                      {checkingApp ? 'CHECKING...' : 'CHECK'}
                     </Button>
                   </CardTitle>
                 </CardHeader>
@@ -681,48 +691,56 @@ export default function SupervisorDashboard() {
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/20">
                 <CardContent className="p-6">
                 <div className="flex items-center">
-                  <Users className="h-8 w-8 text-blue-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30">
+                    <Users className="h-6 w-6 text-cyan-400" />
+                  </div>
                   <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-400">Active Workers</p>
+                    <p className="text-sm font-medium text-gray-400 font-mono">ACTIVE_WORKERS</p>
                       <p className="text-2xl font-bold text-white">{activeWorkers.length}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/20">
                 <CardContent className="p-6">
                 <div className="flex items-center">
-                  <Calendar className="h-8 w-8 text-blue-400" />
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
+                    <Calendar className="h-6 w-6 text-emerald-400" />
+                  </div>
                   <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Total Bookings</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">TOTAL_BOOKINGS</p>
                       <p className="text-2xl font-bold text-white">{totalBookings}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <Car className="h-8 w-8 text-blue-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30">
+                      <Car className="h-6 w-6 text-orange-400" />
+                    </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Queue Vehicles</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">QUEUE_VEHICLES</p>
                       <p className="text-2xl font-bold text-white">{queueVehicles}</p>
                 </div>
               </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/20">
                 <CardContent className="p-6">
                 <div className="flex items-center">
-                    <Route className="h-8 w-8 text-blue-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                      <Route className="h-6 w-6 text-purple-400" />
+                    </div>
                   <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Routes</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">ROUTES</p>
                       <p className="text-2xl font-bold text-white">-</p>
                     </div>
                   </div>
@@ -731,18 +749,18 @@ export default function SupervisorDashboard() {
             </div>
 
             {/* Workers List */}
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10 mb-8">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border-cyan-500/30 mb-8 hover:shadow-2xl hover:shadow-cyan-500/20">
               <CardHeader>
-                <CardTitle className="text-white flex items-center justify-between">
-                  <span>Station Workers ({activeWorkers.length})</span>
+                <CardTitle className="text-white flex items-center justify-between font-mono">
+                  <span>STATION_WORKERS ({activeWorkers.length})</span>
                   <Button 
                     onClick={fetchStaffData}
                     variant="outline"
                     size="sm"
-                    className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10"
+                    className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 font-mono"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                    REFRESH
                 </Button>
                 </CardTitle>
               </CardHeader>
@@ -774,11 +792,13 @@ export default function SupervisorDashboard() {
             </Card>
 
             {/* Customer Support Section */}
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/20">
               <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Headphones className="h-5 w-5 text-blue-400 mr-2" />
-                  Customer Support & B2B Services
+                <CardTitle className="text-white flex items-center font-mono">
+                  <div className="w-8 h-8 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30 mr-2">
+                    <Headphones className="h-5 w-5 text-orange-400" />
+                  </div>
+                  CUSTOMER_SUPPORT_&_B2B_SERVICES
                 </CardTitle>
               </CardHeader>
               <CardContent>

@@ -3,12 +3,14 @@
 import React, { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Building2, ArrowLeft, CheckCircle } from 'lucide-react'
+import { Building2, ArrowLeft, CheckCircle, Hexagon, Cpu, Terminal, Network } from 'lucide-react'
 import StationPartnershipForm from '@/components/station-partnership/StationPartnershipForm'
 import { useRouter } from 'next/navigation'
+import { useLanguage } from '@/lib/hooks/useLanguage'
 
 export default function RequestCreationPage() {
   const router = useRouter()
+  const { t } = useLanguage()
   const [showSuccess, setShowSuccess] = useState(false)
   const [requestNumber, setRequestNumber] = useState('')
 
@@ -40,11 +42,11 @@ export default function RequestCreationPage() {
       <div className="min-h-screen relative bg-black">
         {/* Background */}
         <div className="fixed inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 via-black/80 to-green-950/20" />
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-black/80 to-emerald-950/20" />
           <div className="absolute inset-0 opacity-20" style={{
             backgroundImage: `
-              linear-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px)
+              linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px)
             `,
             backgroundSize: '100px 100px'
           }} />
@@ -52,58 +54,61 @@ export default function RequestCreationPage() {
 
         <div className="relative z-10">
           {/* Navigation */}
-          <nav className="bg-black/80 backdrop-blur-md border-b border-white/10">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="flex justify-between items-center h-16">
-                <div className="flex items-center">
-                  <h1 className="text-2xl font-bold text-white">
-                    Louaj
-                  </h1>
+                  <nav className="bg-black/80 backdrop-blur-md border-b border-emerald-500/30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
+                  <Hexagon className="h-5 w-5 text-emerald-400" />
                 </div>
-                <button
-                  onClick={handleBackClick}
-                  className="text-white hover:text-blue-400 transition-colors font-medium flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Back to Partnership
-                </button>
+                <h1 className="text-2xl font-bold text-white font-mono">
+                  LOUAJ_SYSTEM
+                </h1>
               </div>
+              <button
+                onClick={handleBackClick}
+                className="text-white hover:text-emerald-400 transition-colors font-medium flex items-center gap-2 font-mono"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                BACK_TO_PARTNERSHIP
+              </button>
             </div>
-          </nav>
+          </div>
+        </nav>
 
           {/* Success Section */}
           <section className="py-20 px-4 sm:px-6 lg:px-8">
             <div className="max-w-4xl mx-auto text-center">
-              <div className="bg-white/5 backdrop-blur-sm border border-green-500/30 rounded-xl p-12">
-                <div className="w-20 h-20 bg-green-600/20 rounded-full flex items-center justify-center mx-auto mb-6">
-                  <CheckCircle className="h-10 w-10 text-green-400" />
+              <div className="bg-gray-900/50 backdrop-blur-sm border border-emerald-500/30 rounded-xl p-12 hover:shadow-2xl hover:shadow-emerald-500/20">
+                <div className="w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-emerald-500/30">
+                  <CheckCircle className="h-10 w-10 text-emerald-400" />
                 </div>
 
-                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                  Application Submitted Successfully!
+                <h1 className="text-3xl sm:text-4xl font-bold text-white mb-4 font-mono">
+                  {t('applicationSubmittedSuccessfully')}
                 </h1>
 
-                <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-6 mb-8">
-                  <h2 className="text-xl font-semibold text-green-400 mb-2">
-                    Your Request Number
+                <div className="bg-emerald-600/10 border border-emerald-500/30 rounded-lg p-6 mb-8">
+                  <h2 className="text-xl font-semibold text-emerald-400 mb-2 font-mono">
+                    {t('yourRequestNumber')}
                   </h2>
                   <div className="text-4xl font-bold text-white font-mono tracking-wider">
                     {requestNumber}
                   </div>
-                  <p className="text-green-400 text-sm mt-2">
-                    Please save this number for future reference
+                  <p className="text-emerald-400 text-sm mt-2 font-mono">
+                    {t('pleaseSaveNumber')}
                   </p>
                 </div>
 
-                <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-6 mb-8">
-                  <h3 className="text-lg font-semibold text-blue-400 mb-3">
-                    What's Next?
+                <div className="bg-cyan-600/10 border border-cyan-500/30 rounded-lg p-6 mb-8">
+                  <h3 className="text-lg font-semibold text-cyan-400 mb-3 font-mono">
+                    {t('whatsNext')}
                   </h3>
-                  <div className="text-gray-300 text-left space-y-2">
-                    <p>• Your application is being reviewed by our partnership team</p>
-                    <p>• We'll contact you within 2-3 business days</p>
-                    <p>• Check your email for updates on your application status</p>
-                    <p>• Use your request number to track your application status</p>
+                  <div className="text-gray-300 text-left space-y-2 font-mono">
+                    <p>• {t('applicationBeingReviewed')}</p>
+                    <p>• {t('contactWithinBusinessDays')}</p>
+                    <p>• {t('checkEmailForUpdates')}</p>
+                    <p>• {t('useRequestNumberToTrack')}</p>
                   </div>
                 </div>
 
@@ -113,10 +118,10 @@ export default function RequestCreationPage() {
                       localStorage.setItem('lastRequestNumber', requestNumber)
                       router.push('/station-partnership')
                     }}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200"
+                    className="bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 border border-emerald-500/30 shadow-2xl shadow-emerald-500/20"
                   >
-                    <Building2 className="mr-2 h-5 w-5" />
-                    Back to Partnership Page
+                    <Terminal className="mr-2 h-5 w-5" />
+                    {t('backToPartnershipPage')}
                   </Button>
 
                   <Button
@@ -135,14 +140,14 @@ export default function RequestCreationPage() {
                       }
                     }}
                     variant="outline"
-                    className="border-white/20 text-white hover:bg-white/10 px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200"
+                    className="border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 px-8 py-3 text-lg font-semibold rounded-lg transition-all duration-200 font-mono"
                   >
-                    Download Application Backup
+                    {t('downloadApplicationBackup')}
                   </Button>
                 </div>
 
-                <p className="text-gray-400 text-sm mt-6">
-                  Need help? Contact our partnership team at partnerships@louaj.tn
+                <p className="text-gray-400 text-sm mt-6 font-mono">
+                  {t('needHelpContact')} {t('partnershipTeamEmail')}
                 </p>
               </div>
             </div>
@@ -156,11 +161,11 @@ export default function RequestCreationPage() {
     <div className="min-h-screen relative bg-black">
       {/* Background */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-900/20 via-black/80 to-blue-950/20" />
+        <div className="absolute inset-0 bg-gradient-to-br from-orange-900/20 via-black/80 to-red-950/20" />
         <div className="absolute inset-0 opacity-20" style={{
           backgroundImage: `
-            linear-gradient(rgba(59, 130, 246, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(59, 130, 246, 0.1) 1px, transparent 1px)
+            linear-gradient(rgba(249, 115, 22, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(239, 68, 68, 0.1) 1px, transparent 1px)
           `,
           backgroundSize: '100px 100px'
         }} />
@@ -168,20 +173,23 @@ export default function RequestCreationPage() {
 
       <div className="relative z-10">
         {/* Navigation */}
-        <nav className="bg-black/80 backdrop-blur-md border-b border-white/10">
+        <nav className="bg-black/80 backdrop-blur-md border-b border-orange-500/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-white">
-                  Louaj
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30">
+                  <Hexagon className="h-5 w-5 text-orange-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white font-mono">
+                  LOUAJ_SYSTEM
                 </h1>
               </div>
               <button
                 onClick={handleBackClick}
-                className="text-white hover:text-blue-400 transition-colors font-medium flex items-center gap-2"
+                className="text-white hover:text-orange-400 transition-colors font-medium flex items-center gap-2 font-mono"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Partnership
+                {t('backToPartnership')}
               </button>
             </div>
           </div>
@@ -190,34 +198,34 @@ export default function RequestCreationPage() {
         {/* Header Section */}
         <section className="py-12 px-4 sm:px-6 lg:px-8">
           <div className="max-w-6xl mx-auto">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 mb-8">
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-orange-500/30 rounded-xl p-8 mb-8 hover:shadow-2xl hover:shadow-orange-500/20">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
-                  <Building2 className="h-6 w-6 text-blue-400" />
+                <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30">
+                  <Terminal className="h-6 w-6 text-orange-400" />
                 </div>
                 <div>
-                  <h1 className="text-2xl sm:text-3xl font-bold text-white">
-                    Apply for Station Partnership
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white font-mono">
+                    {t('applyForStationPartnership')}
                   </h1>
-                  <p className="text-gray-400">
-                    Fill out the form below to start your partnership application
+                  <p className="text-gray-400 font-mono">
+                    {t('fillFormBelow')}
                   </p>
                 </div>
               </div>
 
-              <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4">
-                <h3 className="text-blue-400 font-semibold mb-2">Before You Start</h3>
-                <ul className="text-gray-300 text-sm space-y-1">
-                  <li>• Make sure you have all required documents ready</li>
-                  <li>• Check that you meet our partnership requirements</li>
-                  <li>• Application review typically takes 2-3 business days</li>
-                  <li>• You'll receive a request number to track your application</li>
+              <div className="bg-orange-600/10 border border-orange-500/30 rounded-lg p-4">
+                <h3 className="text-orange-400 font-semibold mb-2 font-mono">{t('beforeYouStart')}</h3>
+                <ul className="text-gray-300 text-sm space-y-1 font-mono">
+                  <li>• {t('makeSureDocumentsReady')}</li>
+                  <li>• {t('checkPartnershipRequirements')}</li>
+                  <li>• {t('applicationReviewTakesDays')}</li>
+                  <li>• {t('receiveRequestNumber')}</li>
                 </ul>
               </div>
             </div>
 
             {/* Form Section */}
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8">
+            <div className="bg-gray-900/50 backdrop-blur-sm border border-red-500/30 rounded-xl p-8 hover:shadow-2xl hover:shadow-red-500/20">
               <StationPartnershipForm onSuccess={handleFormSuccess} />
             </div>
           </div>

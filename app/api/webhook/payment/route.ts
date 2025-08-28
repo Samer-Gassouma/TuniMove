@@ -18,13 +18,13 @@ export async function GET(request: NextRequest) {
 
   if (!centralResult.success) {
     console.error('❌ Central server verification failed:', centralResult.error);
-    return NextResponse.redirect(`${request.nextUrl.origin}/payment/failed?payment_ref=${paymentRef}`, { status: 302 });
+    return NextResponse.redirect(`${request.nextUrl.origin}/user/payment/failed?payment_ref=${paymentRef}`, { status: 302 });
   }
 
   console.log('✅ Central server verification successful');
 
 
-  return NextResponse.redirect(`${request.nextUrl.origin}/payment/success?payment_ref=${paymentRef}`, { status: 302 });
+  return NextResponse.redirect(`${request.nextUrl.origin}/user/payment/success?payment_ref=${paymentRef}`, { status: 302 });
 
 }
 

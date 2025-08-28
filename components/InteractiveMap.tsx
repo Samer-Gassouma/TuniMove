@@ -166,8 +166,8 @@ export function InteractiveMap() {
           features: stations.map(station => ({
             type: 'Feature' as const,
             properties: {
-              name: language.code === 'ar' ? station.nameAr : station.name,
-              governorate: language.code === 'ar' ? station.governorate.nameAr : station.governorate.name,
+              name: language.code === 'fr' ? station.nameAr || station.name : station.name,
+              governorate: language.code === 'fr' ? station.governorate.nameAr || station.governorate.name : station.governorate.name,
               isOnline: station.isOnline,
               stationId: station.id
             },
@@ -263,7 +263,7 @@ export function InteractiveMap() {
   }, [stations, routes, loading, error, language.code, t]);
 
   const getStationName = (station: Station) => {
-    return language.code === 'ar' ? station.nameAr : station.name;
+    return language.code === 'fr' ? station.nameAr || station.name : station.name;
   };
 
   if (loading) {

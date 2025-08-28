@@ -4,7 +4,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Shield, LogOut, Users, BarChart3, Settings, MapPin, Activity, RefreshCw } from 'lucide-react'
+import { Shield, LogOut, Users, BarChart3, Settings, MapPin, Activity, RefreshCw, Hexagon, Cpu, Terminal, Network } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -481,35 +481,37 @@ export default function AdminDashboard() {
 
       <div className="relative z-10">
         {/* Navigation */}
-        <nav className="bg-black/80 backdrop-blur-md border-b border-white/10">
+        <nav className="bg-black/80 backdrop-blur-md border-b border-red-500/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <Shield className="h-8 w-8 text-red-400 mr-3" />
-                <h1 className="text-2xl font-bold text-white">
-                  Louaj <span className="text-red-400">Admin</span>
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-red-500/30">
+                  <Hexagon className="h-5 w-5 text-red-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white font-mono">
+                  LOUAJ_SYSTEM <span className="text-red-400 font-mono">ADMIN</span>
                 </h1>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-gray-400">
+                <span className="text-gray-400 font-mono">
                   {userProfile.firstName} {userProfile.lastName}
                 </span>
                 <Button
                   onClick={fetchData}
                   variant="outline"
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 font-mono"
                   disabled={loading}
                 >
                   <RefreshCw className={`mr-2 h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                  Refresh
+                  REFRESH
                 </Button>
                 <Button
                   onClick={handleLogout}
                   variant="outline"
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 font-mono"
                 >
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  LOGOUT
                 </Button>
               </div>
             </div>
@@ -523,38 +525,42 @@ export default function AdminDashboard() {
             <div className="mb-6 flex flex-wrap gap-4">
               <Button
                 onClick={() => router.push('/admin/requests')}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-700 hover:to-orange-700 text-white border border-red-500/30 shadow-2xl shadow-red-500/20"
               >
-                <Shield className="mr-2 h-4 w-4" />
-                View Partnership Requests
+                <Terminal className="mr-2 h-4 w-4" />
+                VIEW_PARTNERSHIP_REQUESTS
               </Button>
             </div>
             
             <div className="mb-6">
-              <h2 className="text-3xl font-bold text-white mb-2">System Overview</h2>
-              <p className="text-gray-400">Real-time station monitoring and management</p>
+              <h2 className="text-3xl font-bold text-white mb-2 font-mono">SYSTEM_OVERVIEW</h2>
+              <p className="text-gray-400 font-mono">REAL_TIME_STATION_MONITORING_AND_MANAGEMENT</p>
             </div>
 
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-red-500/30 hover:shadow-2xl hover:shadow-red-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <MapPin className="h-8 w-8 text-red-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-red-500/30">
+                      <MapPin className="h-6 w-6 text-red-400" />
+                    </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Total Stations</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">TOTAL_STATIONS</p>
                       <p className="text-2xl font-bold text-white">{stations.length}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-emerald-500/30 hover:shadow-2xl hover:shadow-emerald-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <Activity className="h-8 w-8 text-green-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-lg flex items-center justify-center border border-emerald-500/30">
+                      <Activity className="h-6 w-6 text-emerald-400" />
+                    </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Online Stations</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">ONLINE_STATIONS</p>
                       <p className="text-2xl font-bold text-white">
                         {stations.filter(s => s.isOnline).length}
                       </p>
@@ -563,24 +569,28 @@ export default function AdminDashboard() {
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-cyan-500/30 hover:shadow-2xl hover:shadow-cyan-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <Users className="h-8 w-8 text-blue-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30">
+                      <Users className="h-6 w-6 text-cyan-400" />
+                    </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Total Staff</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">TOTAL_STAFF</p>
                       <p className="text-2xl font-bold text-white">{staff?.length || 0}</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/20">
                 <CardContent className="p-6">
                   <div className="flex items-center">
-                    <BarChart3 className="h-8 w-8 text-yellow-400" />
+                    <div className="w-12 h-12 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                      <BarChart3 className="h-6 w-6 text-purple-400" />
+                    </div>
                     <div className="ml-4">
-                      <p className="text-sm font-medium text-gray-400">Total Bookings</p>
+                      <p className="text-sm font-medium text-gray-400 font-mono">TOTAL_BOOKINGS</p>
                       <p className="text-2xl font-bold text-white">
                         {stations.reduce((total, station) => 
                           total + station._count.departureBookings + station._count.destinationBookings, 0
@@ -595,11 +605,13 @@ export default function AdminDashboard() {
             {/* Main Dashboard Content */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Stations Map */}
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/20">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <MapPin className="mr-2 h-5 w-5 text-red-400" />
-                    Stations Map
+                  <CardTitle className="text-white flex items-center font-mono">
+                    <div className="w-8 h-8 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center border border-orange-500/30 mr-2">
+                      <MapPin className="h-5 w-5 text-orange-400" />
+                    </div>
+                    STATIONS_MAP
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -667,11 +679,13 @@ export default function AdminDashboard() {
               </Card>
 
               {/* Stations Table */}
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/20">
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center">
-                    <BarChart3 className="mr-2 h-5 w-5 text-red-400" />
-                    Stations Overview
+                  <CardTitle className="text-white flex items-center font-mono">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30 mr-2">
+                      <BarChart3 className="h-5 w-5 text-purple-400" />
+                    </div>
+                    STATIONS_OVERVIEW
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -724,11 +738,13 @@ export default function AdminDashboard() {
             </div>
 
                         {/* Staff Overview */}
-            <Card className="bg-white/5 backdrop-blur-sm border-white/10 mt-8">
+            <Card className="bg-gray-900/50 backdrop-blur-sm border-cyan-500/30 mt-8 hover:shadow-2xl hover:shadow-cyan-500/20">
               <CardHeader>
-                <CardTitle className="text-white flex items-center">
-                  <Users className="mr-2 h-5 w-5 text-red-400" />
-                  Staff Overview
+                <CardTitle className="text-white flex items-center font-mono">
+                  <div className="w-8 h-8 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg flex items-center justify-center border border-cyan-500/30 mr-2">
+                    <Users className="h-5 w-5 text-cyan-400" />
+                  </div>
+                  STAFF_OVERVIEW
                 </CardTitle>
               </CardHeader>
               <CardContent>

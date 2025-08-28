@@ -84,13 +84,13 @@ export function useAuth() {
         const { user, token } = response.data;
         
         console.log('📝 Storing registration token:', token.substring(0, 20) + '...');
-        
+
         // Store token and user data
-        localStorage.setItem('token', token);
-        localStorage.setItem('user', JSON.stringify(user));
-        
+        localStorage.setItem('userToken', token);
+        localStorage.setItem('userProfile', JSON.stringify(user));
+
         // Set cookie for middleware - using more explicit format
-        const cookieValue = `token=${token}; path=/; max-age=${30 * 24 * 60 * 60}; samesite=lax`;
+        const cookieValue = `userToken=${token}; path=/; max-age=${30 * 24 * 60 * 60}; samesite=lax`;
         document.cookie = cookieValue;
         
         console.log('🍪 Registration cookie set:', cookieValue.substring(0, 50) + '...');
@@ -111,9 +111,9 @@ export function useAuth() {
   };
 
   const verifyToken = async () => {
-    const token = localStorage.getItem('token');
-    const userData = localStorage.getItem('user');
-    
+    const token = localStorage.getItem('userToken');
+    const userData = localStorage.getItem('userProfile');
+
     if (!token) {
       setIsAuthenticated(false);
       setLoading(false);
@@ -135,7 +135,7 @@ export function useAuth() {
 
     // Verify token with backend
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('userToken');
       if (!token) {
         throw new Error('No token found');
       }
@@ -148,7 +148,7 @@ export function useAuth() {
         setUser(userData);
         setIsAuthenticated(true);
         // Update cached user data
-        localStorage.setItem('user', JSON.stringify(userData));
+        localStorage.setItem('userProfile', JSON.stringify(userData));
         console.log('✅ Token verified and user loaded');
       } else {
         console.error('❌ Token verification failed:', response.error);

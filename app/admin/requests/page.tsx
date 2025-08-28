@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
-import { Shield, LogOut, MapPin, Eye, CheckCircle, XCircle, RefreshCw, ArrowLeft, X, ZoomIn } from 'lucide-react'
+import { Shield, LogOut, MapPin, Eye, CheckCircle, XCircle, RefreshCw, ArrowLeft, X, ZoomIn, Hexagon, Cpu, Terminal, Network } from 'lucide-react'
 import mapboxgl from 'mapbox-gl'
 import 'mapbox-gl/dist/mapbox-gl.css'
 
@@ -387,7 +387,7 @@ export default function AdminRequests() {
 
       <div className="relative z-10">
         {/* Header */}
-        <div className="bg-black/80 backdrop-blur-md border-b border-white/10">
+        <div className="bg-black/80 backdrop-blur-md border-b border-red-500/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center py-4">
               <div className="flex items-center space-x-4">
@@ -395,28 +395,30 @@ export default function AdminRequests() {
                   variant="ghost"
                   size="sm"
                   onClick={() => router.push('/admin/dashboard')}
-                  className="flex items-center space-x-2 text-white hover:text-red-400 hover:bg-red-500/10"
+                  className="flex items-center space-x-2 text-white hover:text-red-400 hover:bg-red-500/10 font-mono"
                 >
                   <ArrowLeft className="h-4 w-4" />
-                  <span>Back to Dashboard</span>
+                  <span>BACK_TO_DASHBOARD</span>
                 </Button>
                 <div className="flex items-center space-x-2">
-                  <Shield className="h-6 w-6 text-red-400" />
-                  <h1 className="text-xl font-semibold text-white">Station Partnership Requests</h1>
+                  <div className="w-6 h-6 bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg flex items-center justify-center border border-red-500/30">
+                    <Hexagon className="h-4 w-4 text-red-400" />
+                  </div>
+                  <h1 className="text-xl font-semibold text-white font-mono">STATION_PARTNERSHIP_REQUESTS</h1>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-400">
+                <span className="text-sm text-gray-400 font-mono">
                   Welcome, {userProfile?.firstName} {userProfile?.lastName}
                 </span>
                 <Button 
                   variant="outline" 
                   size="sm" 
                   onClick={handleLogout}
-                  className="border-red-500/50 text-red-400 hover:bg-red-500/10"
+                  className="border-red-500/50 text-red-400 hover:bg-red-500/10 font-mono"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
-                  Logout
+                  LOGOUT
                 </Button>
               </div>
             </div>
@@ -427,18 +429,18 @@ export default function AdminRequests() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Requests List */}
             <div className="lg:col-span-2">
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-red-500/30 hover:shadow-2xl hover:shadow-red-500/20">
                 <CardHeader>
-                  <CardTitle className="flex items-center justify-between text-white">
-                    <span>Partnership Requests ({requests.length})</span>
+                  <CardTitle className="flex items-center justify-between text-white font-mono">
+                    <span>PARTNERSHIP_REQUESTS ({requests.length})</span>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={fetchRequests}
-                      className="flex items-center space-x-2 border-red-500/50 text-red-400 hover:bg-red-500/10"
+                      className="flex items-center space-x-2 border-red-500/50 text-red-400 hover:bg-red-500/10 font-mono"
                     >
                       <RefreshCw className="h-4 w-4" />
-                      <span>Refresh</span>
+                      <span>REFRESH</span>
                     </Button>
                   </CardTitle>
                 </CardHeader>
@@ -511,9 +513,9 @@ export default function AdminRequests() {
 
             {/* Map */}
             <div className="lg:col-span-1">
-              <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/20">
                 <CardHeader>
-                  <CardTitle className="text-white">Request Locations</CardTitle>
+                  <CardTitle className="text-white font-mono">REQUEST_LOCATIONS</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="relative">

@@ -98,6 +98,7 @@ const StationMap: React.FC<StationMapProps> = ({
   const [routeGeometry, setRouteGeometry] = useState<any>(null);
   const [isLoadingRoute, setIsLoadingRoute] = useState(false);
   const [animatingStation, setAnimatingStation] = useState<string | null>(null);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   // Center map on Tunisia
   const tunisiaBounds = {
@@ -257,6 +258,8 @@ const StationMap: React.FC<StationMapProps> = ({
   };
 
   const handleMapLoad = () => {
+    setIsMapLoaded(true);
+
     if (mapRef.current) {
       const map = mapRef.current.getMap();
 
@@ -334,6 +337,15 @@ const StationMap: React.FC<StationMapProps> = ({
           onClick={handleMapClick}
           onLoad={handleMapLoad}
         >
+          {/* Loading overlay while map initializes */}
+          {!isMapLoaded && (
+            <div className="absolute inset-0 bg-slate-800/50 backdrop-blur-sm flex items-center justify-center z-10">
+              <div className="text-center">
+                <Loader className="w-8 h-8 animate-spin text-blue-400 mx-auto mb-4" />
+                <p className="text-white text-sm">Loading map...</p>
+              </div>
+            </div>
+          )}
           {/* Navigation Controls */}
           <NavigationControl position="top-right" />
           <GeolocateControl position="top-right" />
@@ -392,10 +404,10 @@ const StationMap: React.FC<StationMapProps> = ({
             </Source>
           )}
 
-          {/* Station markers (online stations) */}
-          {stations.filter(station => station.isOnline).map((station) => {
+          {/* Station markers (online stations) - Only render when map is loaded */}
+          {isMapLoaded && stations.filter(station => station.isOnline).map((station) => {
             const isSelected = selectedDeparture?.id === station.id;
-            
+
             return (
               <Marker
                 key={`station-${station.id}`}
@@ -429,11 +441,11 @@ const StationMap: React.FC<StationMapProps> = ({
             );
           })}
 
-          {/* Destination markers (when departure is selected) */}
-          {selectedDeparture && destinations.length > 0 && destinations.map((destination) => {
+          {/* Destination markers (when departure is selected) - Only render when map is loaded */}
+          {isMapLoaded && selectedDeparture && destinations.length > 0 && destinations.map((destination) => {
             const coords = getDestinationCoordinates(destination);
             const isSelected = selectedDestination?.destinationId === destination.destinationId;
-            
+
             return (
               <Marker
                 key={`destination-${destination.destinationId}`}
@@ -446,8 +458,8 @@ const StationMap: React.FC<StationMapProps> = ({
               >
                 <div
                   className={`w-8 h-8 rounded-full border-2 flex items-center justify-center cursor-pointer transition-all duration-300 ${
-                    isSelected 
-                      ? 'bg-purple-500 border-purple-400 scale-125 shadow-lg shadow-purple-500/50' 
+                    isSelected
+                      ? 'bg-purple-500 border-purple-400 scale-125 shadow-lg shadow-purple-500/50'
                       : 'bg-orange-500 border-orange-400 hover:bg-orange-600 hover:scale-110 shadow-lg shadow-orange-500/30'
                   }`}
                   title={destination.destinationName}

@@ -4,11 +4,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff, UserPlus, User, Phone, Lock } from "lucide-react";
+import { Eye, EyeOff, UserPlus, User, Phone, Lock, Hexagon, Cpu, Terminal, Network } from "lucide-react";
 import ParticleBackground from "@/components/ParticleBackground";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useUserAuth } from "@/lib/hooks/useUserAuth";
+import { useLanguage } from "@/lib/hooks/useLanguage";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -24,6 +25,7 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const router = useRouter();
   const { register } = useUserAuth();
+  const { t } = useLanguage();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -40,19 +42,19 @@ export default function RegisterPage() {
 
     // Client-side validation
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError(t('passwordsDoNotMatch'));
       setIsLoading(false);
       return;
     }
 
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      setError(t('passwordMin6Chars'));
       setIsLoading(false);
       return;
     }
 
     if (!formData.phoneNumber.match(/^[0-9]{8}$/)) {
-      setError("Phone number must be 8 digits");
+      setError(t('phoneMustBe8Digits'));
       setIsLoading(false);
       return;
     }
@@ -80,31 +82,41 @@ export default function RegisterPage() {
         }, 100);
       } else {
         console.error('❌ Registration failed:', result.error);
-        setError(result.error || 'Registration failed');
+        setError(result.error || t('unexpectedError'));
       }
     } catch (error) {
       console.error('❌ Unexpected error during registration:', error);
-      setError('An unexpected error occurred. Please try again.');
+      setError(t('unexpectedError'));
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <ParticleBackground />
+    <div className="min-h-screen relative bg-black">
+      {/* Background */}
+      <div className="fixed inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-900/20 via-black/80 to-cyan-950/20" />
+        <div className="absolute inset-0 opacity-20" style={{
+          backgroundImage: `
+            linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px),
+            linear-gradient(90deg, rgba(6, 182, 212, 0.1) 1px, transparent 1px)
+          `,
+          backgroundSize: '100px 100px'
+        }} />
+      </div>
       
       <div className="relative z-10 flex min-h-screen items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
+          <Card className="backdrop-blur-xl bg-gray-900/50 border border-emerald-500/30 shadow-2xl hover:shadow-2xl hover:shadow-emerald-500/20">
             <CardHeader className="space-y-6 text-center">
-              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
-                <UserPlus className="w-8 h-8 text-white" />
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-emerald-500/30 flex items-center justify-center">
+                <Terminal className="w-8 h-8 text-emerald-400" />
               </div>
               <div>
-                <CardTitle className="text-2xl font-bold text-white">Create Account</CardTitle>
-                <CardDescription className="text-gray-400 mt-2">
-                  Join TuniMove and start your journey
+                <CardTitle className="text-2xl font-bold text-white font-mono">{t('createAccount')}</CardTitle>
+                <CardDescription className="text-gray-400 mt-2 font-mono">
+                  {t('joinTuniMove')}
                 </CardDescription>
               </div>
             </CardHeader>
@@ -119,32 +131,32 @@ export default function RegisterPage() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300">First Name</label>
+                    <label className="text-sm font-medium text-gray-300 font-mono">{t('firstName')}</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-400" />
                       <Input
                         name="firstName"
                         type="text"
-                        placeholder="First name"
+                        placeholder={t('enterFirstName')}
                         value={formData.firstName}
                         onChange={handleInputChange}
-                        className="pl-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                        className="pl-10 h-12 bg-black/20 border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500/50 text-white placeholder-gray-400"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-300">Last Name</label>
+                    <label className="text-sm font-medium text-gray-300 font-mono">{t('lastName')}</label>
                     <div className="relative">
-                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-400" />
                       <Input
                         name="lastName"
                         type="text"
-                        placeholder="Last name"
+                        placeholder={t('enterLastName')}
                         value={formData.lastName}
                         onChange={handleInputChange}
-                        className="pl-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                        className="pl-10 h-12 bg-black/20 border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500/50 text-white placeholder-gray-400"
                         required
                       />
                     </div>
@@ -152,40 +164,40 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Phone Number</label>
+                  <label className="text-sm font-medium text-gray-300 font-mono">{t('phoneNumber')}</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-400" />
                     <Input
                       name="phoneNumber"
                       type="tel"
                       placeholder="12345678"
                       value={formData.phoneNumber}
                       onChange={handleInputChange}
-                      className="pl-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                      className="pl-10 h-12 bg-black/20 border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500/50 text-white placeholder-gray-400"
                       required
                     />
                   </div>
-                  <p className="text-xs text-gray-400">Enter 8-digit phone number</p>
+                  <p className="text-xs text-gray-400 font-mono">{t('enter8DigitPhone')}</p>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Password</label>
+                  <label className="text-sm font-medium text-gray-300 font-mono">{t('password')}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-400" />
                     <Input
                       name="password"
                       type={showPassword ? "text" : "password"}
-                      placeholder="Enter password"
+                      placeholder={t('enterPassword')}
                       value={formData.password}
                       onChange={handleInputChange}
-                      className="pl-10 pr-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                      className="pl-10 pr-10 h-12 bg-black/20 border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500/50 text-white placeholder-gray-400"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-white"
+                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-emerald-400 hover:text-emerald-300"
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -194,23 +206,23 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-300">Confirm Password</label>
+                  <label className="text-sm font-medium text-gray-300 font-mono">{t('confirmPassword')}</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-emerald-400" />
                     <Input
                       name="confirmPassword"
                       type={showConfirmPassword ? "text" : "password"}
-                      placeholder="Confirm password"
+                      placeholder={t('confirmPasswordPlaceholder')}
                       value={formData.confirmPassword}
                       onChange={handleInputChange}
-                      className="pl-10 pr-10 h-12 bg-slate-800/50 border-slate-600 text-white placeholder-gray-400"
+                      className="pl-10 pr-10 h-12 bg-black/20 border-emerald-500/30 focus:border-emerald-500 focus:ring-emerald-500/50 text-white placeholder-gray-400"
                       required
                     />
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-gray-400 hover:text-white"
+                      className="absolute right-1/2 transform -translate-y-1/2 h-8 w-8 p-0 text-emerald-400 hover:text-emerald-300"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -221,27 +233,27 @@ export default function RegisterPage() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300"
+                  className="w-full h-12 text-lg font-semibold rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed transform hover:scale-105 transition-all duration-300 border border-emerald-500/30 shadow-2xl shadow-emerald-500/20"
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      Creating Account...
+                      {t('creatingAccount')}
                     </div>
                   ) : (
                     <>
                       <UserPlus className="mr-2 h-5 w-5" />
-                      Create Account
+                      {t('createAccount')}
                     </>
                   )}
                 </Button>
               </form>
 
               <div className="text-center">
-                <p className="text-gray-400">
-                  Already have an account?{" "}
-                  <Link href="/user/auth/login" className="text-blue-400 hover:text-blue-300 font-medium">
-                    Sign in
+                <p className="text-gray-400 font-mono">
+                  {t('alreadyHaveAccount')}{" "}
+                  <Link href="/user/auth/login" className="text-emerald-400 hover:text-emerald-300 font-medium">
+                    {t('signIn')}
                   </Link>
                 </p>
               </div>

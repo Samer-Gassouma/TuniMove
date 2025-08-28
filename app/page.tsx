@@ -1,122 +1,134 @@
-"use client";
+"use client"
 
-import React, { useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ArrowRight, MapPin, Users, Zap, Shield, Clock, Star, Truck, Building2, UserPlus, ArrowDown, ChevronDown, Sparkles, Globe, TrendingUp, LogIn, Download, BookOpen, Network, Smartphone, Menu, X } from "lucide-react";
-import ParticleBackground from "@/components/ParticleBackground";
-import { useLanguage } from "@/lib/hooks/useLanguage";
-import { LanguageProvider } from "@/components/LanguageProvider";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { RoutesTable } from "@/components/RoutesTable";
-import { InteractiveMap } from "@/components/InteractiveMap";
-import { useRouter } from "next/navigation";
+import type React from "react"
+import { useRef, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import {
+  ArrowRight,
+  MapPin,
+  Users,
+  Shield,
+  Clock,
+  ChevronDown,
+  Globe,
+  TrendingUp,
+  LogIn,
+  Download,
+  BookOpen,
+  Network,
+  Menu,
+  X,
+  Bus,
+  Route,
+  Zap,
+  Phone,
+  Mail,
+  MessageCircle,
+  Hexagon,
+  Cpu,
+  Terminal,
+} from "lucide-react"
+import ParticleBackground from "@/components/ParticleBackground"
+import { useLanguage } from "@/lib/hooks/useLanguage"
+import { LanguageSwitcher } from "@/components/LanguageSwitcher"
+import { RoutesTable } from "@/components/RoutesTable"
+import { InteractiveMap } from "@/components/InteractiveMap"
+import { useRouter } from "next/navigation"
 
 function LandingPageContent() {
-  const { t } = useLanguage();
-  const router = useRouter();
-  const featuresRef = useRef<HTMLDivElement>(null);
-  const routesRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<HTMLDivElement>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const { t } = useLanguage()
+  const router = useRouter()
+  const featuresRef = useRef<HTMLDivElement>(null)
+  const routesRef = useRef<HTMLDivElement>(null)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement | null>) => {
     if (ref.current) {
       ref.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start'
-      });
+        behavior: "smooth",
+        block: "start",
+      })
     }
-    setIsMobileMenuOpen(false); // Close mobile menu after clicking
-  };
+    setIsMobileMenuOpen(false)
+  }
 
   const handleDownloadApp = () => {
-    // In a real app, this would trigger app store downloads
-    alert('App download coming soon!');
-  };
+    alert("App download coming soon!")
+  }
 
   const handleBookOnline = () => {
-    router.push('/user/dashboard');
-  };
+    router.push("/user/dashboard")
+  }
 
   return (
     <div className="min-h-screen relative bg-black">
-      {/* Particle Background with Neon Effects */}
+      {/* Enhanced Particle Background */}
       <div className="fixed inset-0 z-0">
-        <ParticleBackground 
-          particleColor="rgba(239, 68, 68, 0.8)"
-          connectionColor="rgba(239, 68, 68, 0.3)"
+        <ParticleBackground
+          particleColor="rgba(249, 115, 22, 0.6)"
+          connectionColor="rgba(239, 68, 68, 0.2)"
+          particleCount={60}
         />
       </div>
 
-      {/* Background Gradient Overlay with Red Accents */}
-      <div className="fixed inset-0 z-1 bg-gradient-to-br from-red-900/20 via-black/80 to-red-950/20" />
-
-      {/* Neon Grid Pattern */}
-      <div className="fixed inset-0 z-1 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(rgba(239, 68, 68, 0.1) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(239, 68, 68, 0.1) 1px, transparent 1px)
-          `,
-          backgroundSize: '100px 100px'
-        }} />
-      </div>
+      {/* Tunisian-inspired Background Patterns */}
+      <div className="fixed inset-0 z-1 tunisian-pattern" />
+      <div className="fixed inset-0 z-1 geometric-overlay opacity-30" />
 
       <div className="relative z-10">
-        {/* Navigation - Clean and Simple */}
-        <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-b border-white/10">
+        {/* Enhanced Navigation */}
+        <nav className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-xl border-b border-orange-500/30">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              {/* Logo */}
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold text-white">
-                  Louaj
-                </h1>
+              {/* Logo with Transport Icon */}
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg flex items-center justify-center transport-glow border border-orange-500/30">
+                  <Hexagon className="h-6 w-6 text-orange-400" />
+                </div>
+                <h1 className="text-2xl font-bold text-white font-mono">{t('louajSystem')}</h1>
               </div>
 
               {/* Desktop Navigation */}
-              <div className="hidden md:flex items-center space-x-6">
+              <div className="hidden md:flex items-center space-x-8">
                 <button
-                  onClick={() => scrollToSection(featuresRef as React.RefObject<HTMLDivElement>)}
-                  className="text-white hover:text-blue-400 transition-colors font-medium"
+                  onClick={() => scrollToSection(featuresRef)}
+                  className="text-white hover:text-orange-400 transition-colors font-medium font-mono"
                 >
-                  Features
+                  {t("navFeatures")}
                 </button>
                 <button
-                  onClick={() => scrollToSection(routesRef as React.RefObject<HTMLDivElement>)}
-                  className="text-white hover:text-blue-400 transition-colors font-medium"
+                  onClick={() => scrollToSection(routesRef)}
+                  className="text-white hover:text-orange-400 transition-colors font-medium font-mono"
                 >
-                  Routes
+                  {t("navRoutes")}
                 </button>
                 <button
-                  onClick={() => router.push('/station-partnership')}
-                  className="text-white hover:text-blue-400 transition-colors font-medium"
+                  onClick={() => router.push("/station-partnership")}
+                  className="text-white hover:text-orange-400 transition-colors font-medium font-mono"
                 >
-                  Partner
+                  {t("navPartner")}
                 </button>
                 <div className="flex items-center space-x-3">
                   <Button
                     size="sm"
                     onClick={handleBookOnline}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm font-medium"
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-6 py-2 font-medium transport-glow border border-orange-500/30 shadow-2xl shadow-orange-500/20"
                   >
-                    <BookOpen className="mr-1 h-4 w-4" />
-                    Book Trip
+                    <Terminal className="mr-2 h-4 w-4" />
+                    {t("navBookTrip")}
                   </Button>
                   <LanguageSwitcher />
                 </div>
               </div>
-
 
               {/* Mobile Menu Button */}
               <div className="md:hidden flex items-center space-x-3">
                 <LanguageSwitcher />
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="text-white hover:text-blue-400 transition-colors"
-                  aria-label="Toggle mobile menu"
+                  className="text-white hover:text-orange-400 transition-colors"
                 >
                   {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
@@ -125,33 +137,33 @@ function LandingPageContent() {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-              <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-white/10">
+              <div className="md:hidden bg-black/95 backdrop-blur-md border-t border-orange-500/30">
                 <div className="px-4 py-4 space-y-4">
                   <button
-                    onClick={() => scrollToSection(featuresRef as React.RefObject<HTMLDivElement>)}
-                    className="block w-full text-left text-white hover:text-blue-400 transition-colors font-medium py-2"
+                    onClick={() => scrollToSection(featuresRef)}
+                    className="block w-full text-left text-white hover:text-orange-400 transition-colors font-medium py-2 font-mono"
                   >
-                    Features
+                    {t("navFeatures")}
                   </button>
                   <button
-                    onClick={() => scrollToSection(routesRef as React.RefObject<HTMLDivElement>)}
-                    className="block w-full text-left text-white hover:text-blue-400 transition-colors font-medium py-2"
+                    onClick={() => scrollToSection(routesRef)}
+                    className="block w-full text-left text-white hover:text-orange-400 transition-colors font-medium py-2 font-mono"
                   >
-                    Routes
+                    {t("navRoutes")}
                   </button>
                   <button
-                    onClick={() => router.push('/station-partnership')}
-                    className="block w-full text-left text-white hover:text-blue-400 transition-colors font-medium py-2"
+                    onClick={() => router.push("/station-partnership")}
+                    className="block w-full text-left text-white hover:text-orange-400 transition-colors font-medium py-2 font-mono"
                   >
-                    Partner
+                    {t("navPartner")}
                   </button>
-                  <div className="pt-2 border-t border-white/10">
+                  <div className="pt-2 border-t border-orange-500/30">
                     <Button
                       onClick={handleBookOnline}
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 text-sm font-medium"
+                      className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white py-2 font-medium border border-orange-500/30"
                     >
-                      <BookOpen className="mr-2 h-4 w-4" />
-                      Book Your Trip
+                      <Terminal className="mr-2 h-4 w-4" />
+                      {t("navBookTrip")}
                     </Button>
                   </div>
                 </div>
@@ -160,317 +172,340 @@ function LandingPageContent() {
           </div>
         </nav>
 
-        {/* Hero Section - Simplified and Professional */}
+        {/* Enhanced Hero Section */}
         <section className="min-h-screen flex flex-col items-center justify-center relative px-4 sm:px-6 lg:px-8 pt-16">
-          <div className="text-center max-w-4xl mx-auto">
-            {/* Simple Badge */}
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-600/10 border border-blue-500/20 mb-8">
-              <Globe className="w-4 h-4 text-blue-400" />
-              <span className="text-blue-300 font-medium text-sm">Transportation Made Easy</span>
+          <div className="text-center max-w-5xl mx-auto">
+            {/* Premium Badge */}
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-gradient-to-r from-orange-500/20 to-red-500/20 border border-orange-500/30 mb-8 transport-glow animate-float-up">
+              <Cpu className="w-5 h-5 text-orange-400" />
+              <span className="text-orange-400 font-semibold font-mono">{t("heroBadge")}</span>
+              <Badge variant="secondary" className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 font-mono">
+                PREMIUM
+              </Badge>
             </div>
 
-            {/* Clear, Readable Heading */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-              <span className="text-white">
-                Travel Across
-              </span>
+            {/* Dynamic Heading with Transport Elements */}
+            <h1 className="text-6xl sm:text-7xl lg:text-8xl font-bold mb-8 leading-tight animate-float-up animation-delay-200 font-mono">
+              <span className="text-white">{t("heroHeading1")}</span>
               <br />
-              <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
-                Tunisia
+              <span className="bg-gradient-to-r from-orange-400 via-red-500 to-purple-600 bg-clip-text text-transparent bg-size-200 animate-gradient">
+                {t("heroHeading2")}
               </span>
             </h1>
 
-            {/* Simple Subtitle */}
-            <h2 className="text-xl sm:text-2xl font-semibold mb-6 text-gray-300">
-              Safe, Reliable, and Affordable Transportation
+            {/* Enhanced Subtitle */}
+            <h2 className="text-2xl sm:text-3xl font-semibold mb-6 text-gray-400 animate-float-up animation-delay-400 font-mono">
+              {t("heroSubtitle2")}
             </h2>
 
-            {/* Clear Description */}
-            <p className="text-lg sm:text-xl text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Book your bus tickets online, track your journey in real-time, and travel comfortably across Tunisia with our trusted transportation network.
+            {/* Compelling Description */}
+            <p className="text-xl sm:text-2xl text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed animate-float-up animation-delay-600 font-mono">
+              {t("heroDescription2")}
             </p>
 
-            {/* Clear Action Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
+            {/* Enhanced Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16 animate-float-up animation-delay-800">
               <Button
                 size="lg"
                 onClick={handleBookOnline}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-blue-500/25 transition-all duration-200"
+                className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-10 py-6 text-xl font-semibold rounded-xl shadow-2xl hover:shadow-orange-500/25 transition-all duration-300 transform hover:scale-105 transport-glow border border-orange-500/30"
               >
-                <BookOpen className="mr-2 h-5 w-5" />
-                Book Your Trip
-                <ArrowRight className="ml-2 h-5 w-5" />
+                <Terminal className="mr-3 h-6 w-6" />
+                {t("bookYourTrip")}
+                <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
 
               <Button
                 size="lg"
                 onClick={handleDownloadApp}
                 variant="outline"
-                className="border-blue-500/50 text-blue-400 hover:bg-blue-500/10 hover:text-white px-8 py-4 text-lg font-semibold rounded-lg transition-all duration-200"
+                className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 px-10 py-6 text-xl font-semibold rounded-xl transition-all duration-300 transform hover:scale-105 bg-transparent font-mono"
               >
-                <Download className="mr-2 h-5 w-5 text-blue-400 hover:text-white" />
-                Get the App
+                <Download className="mr-3 h-6 w-6" />
+                {t("getTheApp")}
               </Button>
             </div>
 
-            {/* Simple Scroll Indicator */}
-            <div className="text-gray-500 text-sm flex items-center gap-2" role="button" tabIndex={0}>
-              <span>Scroll to explore features</span>
-              <ChevronDown className="w-4 h-4 animate-bounce" />
+            {/* Transport Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 mb-16 max-w-2xl mx-auto">
+              <div className="text-center animate-float-up animation-delay-200">
+                <div className="text-3xl font-bold text-orange-400 mb-2 font-mono">100+</div>
+                <div className="text-gray-400 font-mono">DESTINATIONS</div>
+              </div>
+              <div className="text-center animate-float-up animation-delay-400">
+                <div className="text-3xl font-bold text-red-400 mb-2 font-mono">24/7</div>
+                <div className="text-gray-400 font-mono">SERVICE</div>
+              </div>
+              <div className="text-center animate-float-up animation-delay-600">
+                <div className="text-3xl font-bold text-purple-400 mb-2 font-mono">50K+</div>
+                <div className="text-gray-400 font-mono">HAPPY_TRAVELERS</div>
+              </div>
             </div>
 
-            {/* Skip Link for Accessibility */}
-            <a
-              href="#main-content"
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium z-50"
-            >
-              Skip to main content
-            </a>
+            {/* Scroll Indicator */}
+            <div className="text-gray-400 text-sm flex items-center gap-2 justify-center animate-bounce font-mono">
+              <span>{t("heroScrollText")}</span>
+              <ChevronDown className="w-4 h-4" />
+            </div>
           </div>
         </section>
 
-        {/* Features Section - Simple and Clear */}
-        <section
-          ref={featuresRef}
-          id="main-content"
-          className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900/50"
-          aria-labelledby="features-heading"
-        >
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-16">
-              <h2
-                id="features-heading"
-                className="text-3xl sm:text-4xl font-bold text-white mb-4"
-              >
-                Why Choose Our Service?
-              </h2>
-              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                Simple, safe, and convenient transportation for everyone
-              </p>
+        {/* Enhanced Features Section */}
+        <section ref={featuresRef} className="py-24 px-4 sm:px-6 lg:px-8 bg-gray-900/30">
+          <div className="max-w-7xl mx-auto">
+            <div className="text-center mb-20">
+              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 font-mono">{t("whyChooseService")}</h2>
+              <p className="text-xl text-gray-400 max-w-3xl mx-auto font-mono">{t("simpleSafeConvenient")}</p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {/* Feature 1: Easy Booking */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
-                <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <BookOpen className="h-6 w-6 text-blue-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Easy Online Booking</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  Book your bus tickets from home or anywhere with just a few clicks. No need to wait in line!
-                </p>
-              </div>
+              {/* Enhanced Feature Cards */}
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30 hover:bg-gray-800/70 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 group">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:from-orange-500/30 group-hover:to-red-500/30 transition-colors transport-glow border border-orange-500/30">
+                    <Terminal className="h-8 w-8 text-orange-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-4 font-mono">{t("easyOnlineBooking")}</h3>
+                  <p className="text-gray-400 leading-relaxed">{t("easyOnlineBookingDesc")}</p>
+                </CardContent>
+              </Card>
 
-              {/* Feature 2: Safe Travel */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
-                <div className="w-12 h-12 bg-green-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-green-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Safe & Reliable</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  Travel with licensed drivers and well-maintained vehicles. Your safety is our top priority.
-                </p>
-              </div>
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-red-500/30 hover:bg-gray-800/70 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-red-500/20 group">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-red-500/20 to-purple-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:from-red-500/30 group-hover:to-purple-500/30 transition-colors border border-red-500/30">
+                    <Shield className="h-8 w-8 text-red-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-4 font-mono">{t("safeReliable")}</h3>
+                  <p className="text-gray-400 leading-relaxed">{t("safeReliableDesc")}</p>
+                </CardContent>
+              </Card>
 
-              {/* Feature 3: Real-time Tracking */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
-                <div className="w-12 h-12 bg-purple-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <MapPin className="h-6 w-6 text-purple-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Track Your Bus</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  Know exactly when your bus will arrive. Get real-time updates about your journey.
-                </p>
-              </div>
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-purple-500/30 hover:bg-gray-800/70 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 group">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/20 to-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:from-purple-500/30 group-hover:to-emerald-500/30 transition-colors border border-purple-500/30">
+                    <MapPin className="h-8 w-8 text-purple-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-4 font-mono">{t("trackYourBus")}</h3>
+                  <p className="text-gray-400 leading-relaxed">{t("trackYourBusDesc")}</p>
+                </CardContent>
+              </Card>
 
-              {/* Feature 4: Affordable */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
-                <div className="w-12 h-12 bg-yellow-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-yellow-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Great Prices</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  Travel across Tunisia without breaking the bank. Affordable fares for everyone.
-                </p>
-              </div>
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-emerald-500/30 hover:bg-gray-800/70 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-emerald-500/20 group">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:from-emerald-500/30 group-hover:to-cyan-500/30 transition-colors border border-emerald-500/30">
+                    <TrendingUp className="h-8 w-8 text-emerald-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-4 font-mono">{t("greatPrices")}</h3>
+                  <p className="text-gray-400 leading-relaxed">{t("greatPricesDesc")}</p>
+                </CardContent>
+              </Card>
 
-              {/* Feature 5: Many Routes */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
-                <div className="w-12 h-12 bg-orange-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <Network className="h-6 w-6 text-orange-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Many Destinations</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  Travel to cities and towns across Tunisia. We connect you to where you need to go.
-                </p>
-              </div>
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-cyan-500/30 hover:bg-gray-800/70 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 group">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:from-cyan-500/30 group-hover:to-blue-500/30 transition-colors border border-cyan-500/30">
+                    <Network className="h-8 w-8 text-cyan-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-4 font-mono">{t("manyDestinations")}</h3>
+                  <p className="text-gray-400 leading-relaxed">{t("manyDestinationsDesc")}</p>
+                </CardContent>
+              </Card>
 
-              {/* Feature 6: 24/7 Support */}
-              <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 hover:bg-white/10 transition-all duration-200">
-                <div className="w-12 h-12 bg-red-600/20 rounded-lg flex items-center justify-center mb-4">
-                  <Users className="h-6 w-6 text-red-400" />
-                </div>
-                <h3 className="text-xl font-semibold text-white mb-3">Help When You Need It</h3>
-                <p className="text-gray-400 leading-relaxed">
-                  Our friendly team is here to help you anytime. Get assistance with your booking or travel.
-                </p>
-              </div>
+              <Card className="bg-gray-900/50 backdrop-blur-sm border-blue-500/30 hover:bg-gray-800/70 transition-all duration-300 transform hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 group">
+                <CardContent className="p-8">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:from-blue-500/30 group-hover:to-indigo-500/30 transition-colors border border-blue-500/30">
+                    <Users className="h-8 w-8 text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-white mb-4 font-mono">{t("helpWhenYouNeedIt")}</h3>
+                  <p className="text-gray-400 leading-relaxed">{t("helpWhenYouNeedItDesc")}</p>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </section>
 
-        {/* Routes & Map Section - Clear and Simple */}
-        <section ref={routesRef} className="py-20 px-4 sm:px-6 lg:px-8">
+        {/* Enhanced Routes & Map Section */}
+        <section ref={routesRef} className="py-24 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
-                Bus Routes & Destinations
-              </h2>
-              <p className="text-lg text-gray-400 max-w-2xl mx-auto">
-                See all our bus routes, prices, and destinations across Tunisia
-              </p>
+            <div className="text-center mb-16">
+              <h2 className="text-4xl sm:text-5xl font-bold text-white mb-6 font-mono">{t("busRoutesDestinations")}</h2>
+              <p className="text-xl text-gray-400 max-w-3xl mx-auto font-mono">{t("busRoutesDesc")}</p>
             </div>
 
-            {/* Side by side layout */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {/* Routes Table on the left */}
-              <div>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-4">
-                  <h3 className="text-xl font-semibold text-white mb-2">Route Information</h3>
-                  <p className="text-gray-400 text-sm">
-                    Choose your starting point and destination to see prices and available routes.
-                  </p>
-                </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+              {/* Routes Table */}
+              <div className="space-y-6">
+                <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <Route className="h-6 w-6 text-orange-400" />
+                      <h3 className="text-xl font-semibold text-white font-mono">{t("routeInformation")}</h3>
+                    </div>
+                    <p className="text-gray-400">{t("routeInfoDesc")}</p>
+                  </CardContent>
+                </Card>
                 <RoutesTable />
               </div>
 
-              {/* Interactive Map on the right */}
-              <div ref={mapRef}>
-                <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-6 mb-4">
-                  <h3 className="text-xl font-semibold text-white mb-2">Interactive Map</h3>
-                  <p className="text-gray-400 text-sm">
-                    Click on stations to see details. Green dots = Online stations, Gray dots = Offline stations.
-                  </p>
-                </div>
+              {/* Interactive Map */}
+              <div className="space-y-6">
+                <Card className="bg-gray-900/50 backdrop-blur-sm border-purple-500/30">
+                  <CardContent className="p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <MapPin className="h-6 w-6 text-purple-400" />
+                      <h3 className="text-xl font-semibold text-white font-mono">{t("interactiveMap")}</h3>
+                    </div>
+                    <p className="text-gray-400">{t("mapDesc")}</p>
+                  </CardContent>
+                </Card>
                 <InteractiveMap />
               </div>
             </div>
           </div>
         </section>
 
-        {/* CTA Section - Simple and Clear */}
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/30">
+        {/* Enhanced CTA Section */}
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-900/30">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-8 md:p-12">
-              <h3 className="text-2xl sm:text-3xl font-bold text-white mb-4">
-                Ready to Start Your Journey?
-              </h3>
-              <p className="text-lg text-gray-400 mb-8 max-w-2xl mx-auto">
-                Join thousands of travelers who choose us for safe, comfortable, and affordable bus travel across Tunisia.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button
-                  size="lg"
-                  onClick={() => router.push('/user/dashboard')}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg font-semibold"
-                >
-                  <BookOpen className="mr-2 h-5 w-5" />
-                  Book Your Trip
-                </Button>
-                <Button
-                  size="lg"
-                  onClick={() => router.push('/user/auth/login')}
-                  variant="outline"
-                  className="border-white/20 text-blue-400 hover:bg-white/10 hover:text-white px-8 py-3 text-lg font-semibold"
-                >
-                  <LogIn className="mr-2 h-5 w-5 text-blue-400 hover:text-white" />
-                  Sign In
-                </Button>
-              </div>
-            </div>
+            <Card className="bg-gray-900/50 backdrop-blur-sm border-orange-500/30 transport-glow">
+              <CardContent className="p-12 md:p-16">
+                <div className="w-20 h-20 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-full flex items-center justify-center mx-auto mb-8 transport-glow border border-orange-500/30">
+                  <Zap className="h-10 w-10 text-orange-400" />
+                </div>
+                <h3 className="text-3xl sm:text-4xl font-bold text-white mb-6 font-mono">{t("readyToStartJourney")}</h3>
+                <p className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto font-mono">{t("readyDesc")}</p>
+                <div className="flex flex-col sm:flex-row gap-6 justify-center">
+                  <Button
+                    size="lg"
+                    onClick={() => router.push("/user/dashboard")}
+                    className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white px-10 py-4 text-lg font-semibold rounded-xl transport-glow border border-orange-500/30 shadow-2xl shadow-orange-500/20"
+                  >
+                    <Terminal className="mr-3 h-5 w-5" />
+                    {t("bookYourTrip")}
+                  </Button>
+                  <Button
+                    size="lg"
+                    onClick={() => router.push("/user/auth/login")}
+                    variant="outline"
+                    className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 hover:text-orange-300 px-10 py-4 text-lg font-semibold rounded-xl font-mono"
+                  >
+                    <LogIn className="mr-3 h-5 w-5" />
+                    {t("signIn")}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </section>
 
-        {/* Footer - Clean and Professional */}
-        <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-gray-900/50 border-t border-white/10">
+        {/* Enhanced Footer */}
+        <footer className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-900/50 border-t border-orange-500/30">
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
               {/* Company Info */}
-              <div>
-                <h3 className="text-xl font-bold text-white mb-4">Louaj</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">
-                  Safe, reliable, and affordable transportation across Tunisia. Making travel easy for everyone.
-                </p>
+              <div className="md:col-span-2">
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className="w-12 h-12 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-xl flex items-center justify-center transport-glow border border-orange-500/30">
+                    <Hexagon className="h-7 w-7 text-orange-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-white font-mono">{t('louajSystem')}</h3>
+                </div>
+                <p className="text-gray-400 text-lg leading-relaxed mb-6">{t("footerCompanyDesc")}</p>
+                <div className="flex space-x-4">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-orange-500/50 text-orange-400 hover:bg-orange-500/10 bg-transparent font-mono"
+                  >
+                    <Phone className="h-4 w-4 mr-2" />
+                    CALL_US
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="border-purple-500/50 text-purple-400 hover:bg-purple-500/10 bg-transparent font-mono"
+                  >
+                    <MessageCircle className="h-4 w-4 mr-2" />
+                    WHATSAPP
+                  </Button>
+                </div>
               </div>
 
               {/* Quick Links */}
               <div>
-                <h4 className="text-lg font-semibold text-white mb-4">Quick Links</h4>
-                <ul className="space-y-2 text-sm">
-                  <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Book Trip</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white transition-colors">View Routes</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help & Support</a></li>
-                  <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                <h4 className="text-lg font-semibold text-white mb-6 font-mono">{t("quickLinks")}</h4>
+                <ul className="space-y-3">
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors font-mono">
+                      {t("bookTrip")}
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors font-mono">
+                      {t("viewRoutes")}
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors font-mono">
+                      {t("helpSupport")}
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="text-gray-400 hover:text-orange-400 transition-colors font-mono">
+                      {t("contactUs")}
+                    </a>
+                  </li>
                 </ul>
               </div>
 
               {/* Contact Info */}
               <div>
-                <h4 className="text-lg font-semibold text-white mb-4">Get Help</h4>
-                <ul className="space-y-2 text-sm text-gray-400">
-                  <li>📞 Call us: +216 XX XXX XXX</li>
-                  <li>💬 WhatsApp: +216 XX XXX XXX</li>
-                  <li>📧 Email: help@louaj.tn</li>
-                  <li>⏰ Available 24/7</li>
+                <h4 className="text-lg font-semibold text-white mb-6 font-mono">{t("getHelp")}</h4>
+                <ul className="space-y-3 text-gray-400 font-mono">
+                  <li className="flex items-center gap-2">
+                    <Phone className="h-4 w-4 text-orange-400" />
+                    +216 XX XXX XXX
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <MessageCircle className="h-4 w-4 text-purple-400" />
+                    +216 XX XXX XXX
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Mail className="h-4 w-4 text-orange-400" />
+                    help@louaj.tn
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-purple-400" />
+                    {t("available247")}
+                  </li>
                 </ul>
               </div>
             </div>
 
-            <div className="pt-8 border-t border-white/10 text-center">
-              <p className="text-gray-500 text-sm">
-                © 2024 Louaj. Making transportation simple and safe for everyone in Tunisia.
-              </p>
+            <div className="pt-8 border-t border-orange-500/30 text-center">
+              <p className="text-gray-400 font-mono">{t("footerCopyright")}</p>
             </div>
           </div>
         </footer>
       </div>
 
-      {/* Custom CSS for Neon Effects */}
+      {/* Enhanced Custom Styles */}
       <style jsx>{`
-        .glow-red {
-          box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
+        @keyframes gradient {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
         }
-        .glow-red:hover {
-          box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+        .animate-gradient {
+          background-size: 200% 200%;
+          animation: gradient 3s ease infinite;
         }
-        @keyframes fade-in-up {
-          from {
-            opacity: 0;
-            transform: translateY(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateY(0);
-          }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 1s ease-out;
-        }
-        .animation-delay-200 {
-          animation-delay: 200ms;
-        }
-        .animation-delay-400 {
-          animation-delay: 400ms;
+        .bg-size-200 {
+          background-size: 200% 200%;
         }
       `}</style>
     </div>
-  );
+  )
 }
 
 export default function Home() {
-  return (
-    <LanguageProvider>
-      <LandingPageContent />
-    </LanguageProvider>
-  );
+  return <LandingPageContent />
 }

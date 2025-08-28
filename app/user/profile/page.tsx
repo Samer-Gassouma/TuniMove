@@ -5,8 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, User, Phone, Mail, Shield, Edit2, Save, X, Menu } from 'lucide-react';
+import { ArrowLeft, User, Phone, Mail, Shield, Edit2, Save, X, Menu, Settings, CheckCircle, AlertTriangle } from 'lucide-react';
 import ParticleBackground from '@/components/ParticleBackground';
+import { useLanguage } from '@/lib/hooks/useLanguage';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
+import { Badge } from '@/components/ui/badge';
 
 interface User {
   id: string;
@@ -19,6 +22,7 @@ interface User {
 }
 
 export default function ProfilePage() {
+  const { t } = useLanguage();
   const [user, setUser] = useState<User | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -163,143 +167,178 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen relative bg-black">
-      {/* Particle Background */}
-      <div className="fixed inset-0 z-0">
-        <ParticleBackground 
-          particleColor="rgba(59, 130, 246, 0.6)"
-          connectionColor="rgba(59, 130, 246, 0.2)"
-        />
+    <div className="min-h-screen bg-slate-950">
+      {/* Modern Header */}
+      <div className="sticky top-0 z-50 bg-slate-900/95 backdrop-blur-xl border-b border-slate-800/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
+            <div className="flex items-center space-x-2 sm:space-x-4 min-w-0 flex-1">
+              <Button
+                onClick={() => router.push('/user/dashboard')}
+                variant="ghost"
+                size="sm"
+                className="text-slate-400 hover:text-white hover:bg-slate-800/50 flex-shrink-0"
+              >
+                <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
+                <span className="hidden sm:inline">{t('dashboard')}</span>
+              </Button>
+              <div className="w-px h-4 sm:h-6 bg-slate-700 hidden sm:block"></div>
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
+                  <User className="w-4 h-4 sm:w-5 sm:w-5 text-purple-400" />
+                </div>
+                <div className="min-w-0">
+                  <h1 className="text-lg sm:text-xl font-bold text-white truncate">{t('myProfile')}</h1>
+                  <p className="text-slate-400 text-xs sm:text-sm hidden sm:block">{t('manageYourAccountSettings')}</p>
+                </div>
+              </div>
+            </div>
+            
+            <LanguageSwitcher />
+          </div>
+        </div>
       </div>
 
-      {/* Background Gradient */}
-      <div className="fixed inset-0 z-1 bg-gradient-to-br from-blue-900/30 via-slate-900/50 to-purple-900/30" />
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
 
-      <div className="relative z-10">
-        {/* Header */}
-        <header className="border-b border-slate-700/50 bg-slate-900/20 backdrop-blur-xl">
-          <div className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center py-4 sm:py-6">
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                <Button
-                  onClick={() => router.push('/dashboard')}
-                  variant="outline"
-                  size="sm"
-                  className="border-slate-600 text-gray-300 hover:bg-slate-800 hover:text-white p-2 flex-shrink-0"
-                >
-                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
-                
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center flex-shrink-0">
-                  <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
-                </div>
-                
-                <div className="min-w-0 flex-1">
-                  <h1 className="text-lg sm:text-2xl font-bold text-white truncate">Profile Settings</h1>
-                  <p className="text-gray-400 text-sm sm:text-base truncate">Manage your account information</p>
+        {/* Profile Overview */}
+        <div className="mb-6 sm:mb-8">
+          <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl sm:rounded-2xl p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 mb-4 sm:mb-6">
+              <div className="w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 bg-purple-600/20 rounded-xl sm:rounded-2xl flex items-center justify-center flex-shrink-0">
+                <span className="text-lg sm:text-xl lg:text-2xl font-bold text-white">
+                  {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                </span>
+              </div>
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-white mb-1">
+                  {user.firstName} {user.lastName}
+                </h2>
+                <p className="text-slate-400 text-base sm:text-lg">{user.phoneNumber}</p>
+                <div className="flex flex-wrap items-center gap-2 mt-2">
+                  <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-500/30 text-xs sm:text-sm">
+                    <Shield className="w-3 h-3 mr-1" />
+                    {user.isPhoneVerified ? t('verified') : t('pending')}
+                  </Badge>
+                  <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/30 text-xs sm:text-sm">
+                    {t('memberSince')} {new Date(user.createdAt).getFullYear()}
+                  </Badge>
                 </div>
               </div>
             </div>
           </div>
-        </header>
+        </div>
 
-        {/* Main Content */}
-        <main className="max-w-4xl mx-auto px-3 sm:px-6 lg:px-8 py-6 sm:py-12">
-          {/* Profile Information Card */}
-          <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50 mb-6 sm:mb-8">
-            <CardHeader className="p-4 sm:p-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <CardTitle className="text-xl sm:text-2xl text-white">Personal Information</CardTitle>
-                  <CardDescription className="text-gray-400 text-sm sm:text-base">
-                    Your basic account details
-                  </CardDescription>
-                </div>
-                
-                {!isEditing ? (
-                  <Button 
-                    onClick={handleEdit}
-                    variant="outline"
-                    className="border-slate-600 text-gray-300 hover:bg-slate-800 hover:text-white w-full sm:w-auto"
-                  >
-                    <Edit2 className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                ) : (
-                  <div className="flex flex-col sm:flex-row gap-2">
-                    <Button 
-                      onClick={handleSave}
-                      disabled={isLoading}
-                      className="bg-green-600 hover:bg-green-700 text-white order-1 sm:order-none"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save
-                    </Button>
-                    <Button 
-                      onClick={handleCancel}
-                      variant="outline"
-                      className="border-slate-600 text-gray-300 hover:bg-slate-800 hover:text-white order-2 sm:order-none"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel
-                    </Button>
+        {/* Profile Information Card */}
+        <Card className="bg-slate-800/30 border-slate-700/50 mb-6 sm:mb-8">
+          <CardHeader className="pb-4 sm:pb-6">
+            <div className="flex flex-col gap-4 sm:gap-0 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <CardTitle className="text-xl sm:text-2xl text-white flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600/20 rounded-lg sm:rounded-xl flex items-center justify-center">
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
                   </div>
-                )}
+                  {t('personalDetails')}
+                </CardTitle>
+                <CardDescription className="text-slate-400 mt-1 sm:mt-2 text-sm sm:text-base">
+                  {t('managePersonalDetails')}
+                </CardDescription>
               </div>
-            </CardHeader>
-            
-            <CardContent className="p-4 sm:p-6 space-y-4 sm:space-y-6">
-              {error && (
-                <div className="p-3 sm:p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
-                  {error}
-                </div>
-              )}
               
-              {success && (
-                <div className="p-3 sm:p-4 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-sm">
-                  {success}
+              {!isEditing ? (
+                <Button 
+                  onClick={handleEdit}
+                  className="bg-blue-600 hover:bg-blue-700 text-white self-start sm:self-auto"
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  {t('editProfile')}
+                </Button>
+              ) : (
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 self-start sm:self-auto">
+                  <Button 
+                    onClick={handleSave}
+                    disabled={isLoading}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    {isLoading ? t('saving') : t('saveChanges')}
+                  </Button>
+                  <Button 
+                    onClick={handleCancel}
+                    variant="outline"
+                    className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    {t('cancel')}
+                  </Button>
                 </div>
               )}
+            </div>
+          </CardHeader>
+            
+          <CardContent className="p-4 sm:p-6 lg:p-8">
+            {error && (
+              <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-4 sm:mb-6">
+                <div className="flex items-center space-x-2">
+                  <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-medium text-sm sm:text-base">{t('error')}</span>
+                </div>
+                <p className="mt-1 sm:mt-2 text-sm sm:text-base">{error}</p>
+              </div>
+            )}
+            
+            {success && (
+              <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-4 sm:mb-6">
+                <div className="flex items-center space-x-2">
+                  <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span className="font-medium text-sm sm:text-base">{t('success')}</span>
+                </div>
+                <p className="mt-1 sm:mt-2 text-sm sm:text-base">{success}</p>
+              </div>
+            )}
 
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-slate-400 text-sm font-medium mb-3">
                     First Name
                   </label>
                   {isEditing ? (
                     <Input
                       value={editData.firstName}
                       onChange={(e) => setEditData({...editData, firstName: e.target.value})}
-                      className="bg-slate-800/50 border-slate-600 text-white h-11 sm:h-12"
-                      placeholder="Enter first name"
+                      className="bg-slate-800/50 border-slate-600 text-white h-12 text-lg"
+                      placeholder="Enter your first name"
                     />
                   ) : (
-                    <p className="text-white text-base sm:text-lg p-3 bg-slate-800/30 rounded-lg border border-slate-700">
-                      {user.firstName}
-                    </p>
+                    <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                      <p className="text-white text-lg font-medium">{user.firstName}</p>
+                    </div>
                   )}
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
+                <div>
+                  <label className="block text-slate-400 text-sm font-medium mb-3">
                     Last Name
                   </label>
                   {isEditing ? (
                     <Input
                       value={editData.lastName}
                       onChange={(e) => setEditData({...editData, lastName: e.target.value})}
-                      className="bg-slate-800/50 border-slate-600 text-white h-11 sm:h-12"
-                      placeholder="Enter last name"
+                      className="bg-slate-800/50 border-slate-600 text-white h-12 text-lg"
+                      placeholder="Enter your last name"
                     />
                   ) : (
-                    <p className="text-white text-base sm:text-lg p-3 bg-slate-800/30 rounded-lg border border-slate-700">
-                      {user.lastName}
-                    </p>
+                    <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                      <p className="text-white text-lg font-medium">{user.lastName}</p>
+                    </div>
                   )}
                 </div>
-                
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
+              </div>
+              
+              <div className="space-y-6">
+                <div>
+                  <label className="block text-slate-400 text-sm font-medium mb-3">
                     Email Address
                   </label>
                   {isEditing ? (
@@ -307,91 +346,144 @@ export default function ProfilePage() {
                       type="email"
                       value={editData.email}
                       onChange={(e) => setEditData({...editData, email: e.target.value})}
-                      className="bg-slate-800/50 border-slate-600 text-white h-11 sm:h-12"
-                      placeholder="Enter email address (optional)"
+                      className="bg-slate-800/50 border-slate-600 text-white h-12 text-lg"
+                      placeholder="Enter your email address (optional)"
                     />
                   ) : (
-                    <p className="text-white text-base sm:text-lg p-3 bg-slate-800/30 rounded-lg border border-slate-700">
-                      {user.email || 'Not provided'}
-                    </p>
+                    <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                      <p className="text-white text-lg font-medium">{user.email || 'Not provided'}</p>
+                    </div>
                   )}
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-300">
+                <div>
+                  <label className="block text-slate-400 text-sm font-medium mb-3">
                     Phone Number
                   </label>
-                  <div className="flex items-center gap-3 p-3 bg-slate-800/30 rounded-lg border border-slate-700">
-                    <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 flex-shrink-0" />
-                    <span className="text-white text-base sm:text-lg truncate flex-1">{user.phoneNumber}</span>
-                    {user.isPhoneVerified ? (
-                      <span className="px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded-full flex items-center gap-1 flex-shrink-0">
-                        <Shield className="w-3 h-3" />
-                        <span className="hidden sm:inline">Verified</span>
-                        <span className="sm:hidden">✓</span>
-                      </span>
-                    ) : (
-                      <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded-full flex-shrink-0">
-                        <span className="hidden sm:inline">Pending</span>
-                        <span className="sm:hidden">!</span>
-                      </span>
-                    )}
+                  <div className="p-4 bg-slate-800/30 rounded-xl border border-slate-700/50">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <Phone className="w-5 h-5 text-slate-400" />
+                        <span className="text-white text-lg font-medium">{user.phoneNumber}</span>
+                      </div>
+                      <Badge className={user.isPhoneVerified 
+                        ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" 
+                        : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                      }>
+                        <Shield className="w-3 h-3 mr-1" />
+                        {user.isPhoneVerified ? 'Verified' : 'Pending'}
+                      </Badge>
+                    </div>
+                    <p className="text-slate-500 text-sm mt-2">
+                      Contact support to change your phone number
+                    </p>
                   </div>
-                  <p className="text-gray-500 text-xs sm:text-sm">
-                    Contact support to change your phone number
-                  </p>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Account Status & Security */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Account Status */}
+          <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700/50">
+            <CardHeader>
+              <CardTitle className="text-xl text-white flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-500/20 rounded-xl flex items-center justify-center">
+                  <Shield className="w-5 h-5 text-emerald-400" />
+                </div>
+                Account Status
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Your verification and security status
+              </CardDescription>
+            </CardHeader>
+            
+            <CardContent className="p-6 space-y-4">
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Shield className="w-5 h-5 text-blue-400" />
+                    <div>
+                      <p className="text-white font-medium">Phone Verification</p>
+                      <p className="text-slate-400 text-sm">Your phone number status</p>
+                    </div>
+                  </div>
+                  <Badge className={user.isPhoneVerified 
+                    ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" 
+                    : "bg-amber-500/20 text-amber-400 border-amber-500/30"
+                  }>
+                    {user.isPhoneVerified ? 'Verified' : 'Pending'}
+                  </Badge>
+                </div>
+              </div>
+              
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <User className="w-5 h-5 text-purple-400" />
+                    <div>
+                      <p className="text-white font-medium">Account Status</p>
+                      <p className="text-slate-400 text-sm">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
+                    </div>
+                  </div>
+                  <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+                    Active
+                  </Badge>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Account Status Card */}
-          <Card className="backdrop-blur-xl bg-gradient-to-br from-slate-800/40 to-slate-900/40 border border-slate-600/50">
-            <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-xl sm:text-2xl text-white">Account Status</CardTitle>
-              <CardDescription className="text-gray-400 text-sm sm:text-base">
-                Your account verification and security status
+          {/* Security Settings */}
+          <Card className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-slate-700/50">
+            <CardHeader>
+              <CardTitle className="text-xl text-white flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center">
+                  <Settings className="w-5 h-5 text-amber-400" />
+                </div>
+                Security & Privacy
+              </CardTitle>
+              <CardDescription className="text-slate-400">
+                Manage your account security settings
               </CardDescription>
             </CardHeader>
             
-            <CardContent className="p-4 sm:p-6 space-y-3 sm:space-y-4">
-              <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-800/30 rounded-lg border border-slate-700">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white font-medium text-sm sm:text-base">Phone Verification</p>
-                    <p className="text-gray-400 text-xs sm:text-sm truncate">Your phone number verification status</p>
+            <CardContent className="p-6 space-y-4">
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Phone className="w-5 h-5 text-emerald-400" />
+                    <div>
+                      <p className="text-white font-medium">Two-Factor Authentication</p>
+                      <p className="text-slate-400 text-sm">SMS verification enabled</p>
+                    </div>
                   </div>
+                  <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
+                    Enabled
+                  </Badge>
                 </div>
-                {user.isPhoneVerified ? (
-                  <span className="px-2 sm:px-3 py-1 bg-green-500/20 text-green-400 text-xs sm:text-sm rounded-full flex-shrink-0">
-                    <span className="hidden sm:inline">Verified</span>
-                    <span className="sm:hidden">✓</span>
-                  </span>
-                ) : (
-                  <span className="px-2 sm:px-3 py-1 bg-yellow-500/20 text-yellow-400 text-xs sm:text-sm rounded-full flex-shrink-0">
-                    <span className="hidden sm:inline">Pending</span>
-                    <span className="sm:hidden">!</span>
-                  </span>
-                )}
               </div>
               
-              <div className="flex items-center justify-between p-3 sm:p-4 bg-slate-800/30 rounded-lg border border-slate-700">
-                <div className="flex items-center gap-3 min-w-0 flex-1">
-                  <User className="w-4 h-4 sm:w-5 sm:h-5 text-purple-400 flex-shrink-0" />
-                  <div className="min-w-0 flex-1">
-                    <p className="text-white font-medium text-sm sm:text-base">Account Created</p>
-                    <p className="text-gray-400 text-xs sm:text-sm truncate">Member since {new Date(user.createdAt).toLocaleDateString()}</p>
+              <div className="bg-slate-800/30 rounded-xl p-4 border border-slate-700/50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Mail className="w-5 h-5 text-slate-400" />
+                    <div>
+                      <p className="text-white font-medium">Email Notifications</p>
+                      <p className="text-slate-400 text-sm">Trip updates and receipts</p>
+                    </div>
                   </div>
+                  <Badge className="bg-slate-500/20 text-slate-400 border-slate-500/30">
+                    {user.email ? 'Enabled' : 'Disabled'}
+                  </Badge>
                 </div>
-                <span className="px-2 sm:px-3 py-1 bg-blue-500/20 text-blue-400 text-xs sm:text-sm rounded-full flex-shrink-0">
-                  Active
-                </span>
               </div>
             </CardContent>
           </Card>
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 } 

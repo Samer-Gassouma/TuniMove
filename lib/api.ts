@@ -54,6 +54,7 @@ export interface RouteDestination {
   estimatedDeparture: string;
   basePrice: number;
   vehicles: VehicleInfo[];
+  openingTime?: string; // Station opening time in HH:MM format
 }
 
 export interface VehicleInfo {
@@ -111,7 +112,7 @@ class ApiClient {
   }
 
   private getAuthHeaders(): Record<string, string> {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    const token = typeof window !== 'undefined' ? localStorage.getItem('userToken') : null;
     return {
       'Content-Type': 'application/json',
       ...(token && { Authorization: `Bearer ${token}` }),
@@ -306,6 +307,49 @@ class ApiClient {
     });
   }
 
+  // Overnight Booking Methods
+  /**
+   * Get available overnight destinations for a specific station
+   * GET /api/v1/route-discovery/overnight/:stationId
+   */
+  async getOvernightDestinations(stationId: string): Promise<ApiResponse<RouteDestination[]>> {
+    return this.request(`/api/v1/route-discovery/overnight/${stationId}`);
+  }
+
+  /**
+   * Get detailed vehicle queue information for a specific overnight route
+   * GET /api/v1/route-discovery/overnight/:departureStationId/:destinationId
+   */
+  async getOvernightRouteDetails(
+    departureStationId: string,
+    destinationId: string
+  ): Promise<ApiResponse<RouteDestination>> {
+    return this.request(`/api/v1/route-discovery/overnight/${departureStationId}/${destinationId}`);
+  }
+
+  /**
+   * Create an overnight booking
+   * POST /api/v1/central-bookings/overnight
+   */
+  async createOvernightBooking(
+    departureStationId: string,
+    destinationStationId: string,
+    numberOfSeats: number
+  ): Promise<ApiResponse<{ booking: Booking; paymentUrl: string }>> {
+    // Use frontend webhook URL instead of Central Server's own webhook
+    const frontendWebhookUrl = `${window.location.origin}/api/webhook/payment`;
+
+    return this.request('/api/v1/central-bookings/overnight', {
+      method: 'POST',
+      body: JSON.stringify({
+        departureStationId,
+        destinationStationId,
+        numberOfSeats,
+        webhookUrl: frontendWebhookUrl // Send frontend webhook URL to Central Server
+      }),
+    });
+  }
+
   // Health Check Endpoints
   async checkRouteDiscoveryHealth(): Promise<ApiResponse<any>> {
     return this.request('/api/v1/route-discovery/health');
@@ -327,12 +371,12 @@ export function useApiClient() {
 // Helper functions
 export function getAuthToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('token');
+  return localStorage.getItem('userToken');
 }
 
 export function getCurrentUser(): User | null {
   if (typeof window === 'undefined') return null;
-  const userStr = localStorage.getItem('user');
+  const userStr = localStorage.getItem('userProfile');
   return userStr ? JSON.parse(userStr) : null;
 }
 
@@ -342,9 +386,9 @@ export function isAuthenticated(): boolean {
 
 export function logout(): void {
   if (typeof window === 'undefined') return;
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
+  localStorage.removeItem('userToken');
+  localStorage.removeItem('userProfile');
+  document.cookie = 'userToken=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT';
 }
 
 // Additional helper functions for the booking flow
@@ -390,4 +434,81 @@ export function getBookingStatusBadge(status: string): { color: string; text: st
     default:
       return { color: 'bg-gray-600/20 text-gray-400 border-gray-500/50', text: status };
   }
+}
+
+// Overnight booking helper functions
+export function calculateOvernightETA(openingTime: string): { eta: string; dayIndicator: string } {
+  const now = new Date();
+  const currentHour = now.getHours();
+  const currentMinute = now.getMinutes();
+
+  // Parse opening time (format: "HH:MM")
+  const [openingHour, openingMinute] = openingTime.split(':').map(Number);
+
+  // Create opening time for today
+  const todayOpening = new Date();
+  todayOpening.setHours(openingHour, openingMinute, 0, 0);
+
+  // Create opening time for tomorrow
+  const tomorrowOpening = new Date(todayOpening);
+  tomorrowOpening.setDate(tomorrowOpening.getDate() + 1);
+
+  // Calculate minutes until opening
+  let minutesUntilOpening: number;
+  let dayIndicator: string;
+
+  if (now < todayOpening) {
+    // Station opens today
+    minutesUntilOpening = Math.floor((todayOpening.getTime() - now.getTime()) / (1000 * 60));
+    dayIndicator = 'today';
+  } else {
+    // Station opens tomorrow
+    minutesUntilOpening = Math.floor((tomorrowOpening.getTime() - now.getTime()) / (1000 * 60));
+    dayIndicator = 'tomorrow';
+  }
+
+  // Format ETA
+  let eta: string;
+  if (minutesUntilOpening <= 60) {
+    eta = `${minutesUntilOpening} MIN`;
+  } else {
+    const hours = Math.floor(minutesUntilOpening / 60);
+    const minutes = minutesUntilOpening % 60;
+    eta = minutes > 0 ? `${hours}H ${minutes}MIN` : `${hours}H`;
+  }
+
+  console.log(`🌙 ETA Calculation: Current time ${currentHour}:${currentMinute}, Opening time ${openingTime}, Day: ${dayIndicator}, ETA: ${eta}`);
+
+  return { eta, dayIndicator };
+}
+
+export function formatOvernightDepartureTime(openingTime: string, estimatedDeparture?: string): string {
+  if (estimatedDeparture) {
+    // If we have a specific estimated departure time, use it
+    try {
+      const departure = new Date(estimatedDeparture);
+      return departure.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+    } catch (error) {
+      console.warn('Invalid estimated departure time, using opening time');
+    }
+  }
+
+  // Use opening time as fallback
+  const [hour, minute] = openingTime.split(':');
+  const openingDate = new Date();
+  openingDate.setHours(parseInt(hour), parseInt(minute), 0, 0);
+
+  // If current time is after opening time, assume it's for tomorrow
+  const now = new Date();
+  if (now > openingDate) {
+    openingDate.setDate(openingDate.getDate() + 1);
+  }
+
+  return openingDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }

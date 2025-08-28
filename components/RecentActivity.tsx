@@ -45,7 +45,7 @@ export default function RecentActivity() {
 
   const fetchRecentActivity = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('userToken');
       if (!token) return;
 
       const response = await fetch('/api/bookings/recent', {
@@ -178,7 +178,7 @@ export default function RecentActivity() {
             <p className="text-gray-400 text-sm">No recent activity</p>
             <Button
               size="sm"
-              onClick={() => router.push('/book-trip')}
+              onClick={() => router.push('/user/book-trip')}
               className="mt-3 bg-blue-600 hover:bg-blue-700"
             >
               Book Your First Trip
