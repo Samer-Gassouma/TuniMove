@@ -61,6 +61,11 @@ export async function GET(request: NextRequest) {
       asset.name.endsWith('.exe') && asset.name.includes('x64')
     );
 
+    // Find Linux AppImage
+    const appImageAsset = release.assets.find(asset =>
+      asset.name.endsWith('.AppImage') && asset.name.includes('x86_64')
+    );
+
     // Find the updater files (signatures)
     const msiSignature = release.assets.find(asset =>
       asset.name.endsWith('.msi.zip.sig')
@@ -68,6 +73,11 @@ export async function GET(request: NextRequest) {
 
     const nsisSignature = release.assets.find(asset =>
       asset.name.endsWith('.nsis.zip.sig')
+    );
+
+    // Find Linux AppImage signature
+    const appImageSignature = release.assets.find(asset =>
+      asset.name.endsWith('.AppImage.tar.gz.sig')
     );
 
     // Build the Tauri updater response
@@ -85,7 +95,7 @@ export async function GET(request: NextRequest) {
         const sigResponse = await fetch(msiSignature.browser_download_url);
         if (sigResponse.ok) {
           const signatureContent = await sigResponse.text();
-
+          
           updaterResponse.platforms['windows-x86_64'] = {
             signature: signatureContent,
             url: msiAsset.browser_download_url
@@ -103,7 +113,7 @@ export async function GET(request: NextRequest) {
         const sigResponse = await fetch(nsisSignature.browser_download_url);
         if (sigResponse.ok) {
           const signatureContent = await sigResponse.text();
-
+          
           updaterResponse.platforms['windows-x86_64'] = {
             signature: signatureContent,
             url: nsisAsset.browser_download_url
@@ -111,6 +121,24 @@ export async function GET(request: NextRequest) {
         }
       } catch (error) {
         console.error('Failed to fetch NSIS signature:', error);
+      }
+    }
+
+    // Add Linux x86_64 platform if AppImage is available
+    if (appImageAsset && appImageSignature) {
+      try {
+        // Fetch the actual signature content from the .sig file
+        const sigResponse = await fetch(appImageSignature.browser_download_url);
+        if (sigResponse.ok) {
+          const signatureContent = await sigResponse.text();
+          
+          updaterResponse.platforms['linux-x86_64'] = {
+            signature: signatureContent,
+            url: appImageAsset.browser_download_url
+          };
+        }
+      } catch (error) {
+        console.error('Failed to fetch AppImage signature:', error);
       }
     }
 
