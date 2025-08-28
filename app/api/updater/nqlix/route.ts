@@ -21,7 +21,7 @@ interface TauriUpdaterResponse {
     [key: string]: {
       signature: string;
       url: string;
-    };
+     };
   };
 }
 
@@ -48,25 +48,25 @@ export async function GET(request: NextRequest) {
     const release: GitHubRelease = await response.json();
 
     // Parse version (remove 'v' prefix if present)
-    const version = release.tag_name.startsWith('v') 
-      ? release.tag_name.substring(1) 
+    const version = release.tag_name.startsWith('v')
+      ? release.tag_name.substring(1)
       : release.tag_name;
 
     // Find the MSI and NSIS installers
-    const msiAsset = release.assets.find(asset => 
+    const msiAsset = release.assets.find(asset =>
       asset.name.endsWith('.msi') && asset.name.includes('x64')
     );
-    
-    const nsisAsset = release.assets.find(asset => 
+
+    const nsisAsset = release.assets.find(asset =>
       asset.name.endsWith('.exe') && asset.name.includes('x64')
     );
 
     // Find the updater files (signatures)
-    const msiSignature = release.assets.find(asset => 
+    const msiSignature = release.assets.find(asset =>
       asset.name.endsWith('.msi.zip.sig')
     );
-    
-    const nsisSignature = release.assets.find(asset => 
+
+    const nsisSignature = release.assets.find(asset =>
       asset.name.endsWith('.nsis.zip.sig')
     );
 
@@ -80,24 +80,44 @@ export async function GET(request: NextRequest) {
 
     // Add Windows x64 platform if MSI is available
     if (msiAsset && msiSignature) {
-      updaterResponse.platforms['windows-x86_64'] = {
-        signature: msiSignature.browser_download_url,
-        url: msiAsset.browser_download_url
-      };
+      try {
+        // Fetch the actual signature content from the .sig file
+        const sigResponse = await fetch(msiSignature.browser_download_url);
+        if (sigResponse.ok) {
+          const signatureContent = await sigResponse.text();
+
+          updaterResponse.platforms['windows-x86_64'] = {
+            signature: signatureContent,
+            url: msiAsset.browser_download_url
+          };
+        }
+      } catch (error) {
+        console.error('Failed to fetch MSI signature:', error);
+      }
     }
 
     // Add Windows x64 platform if NSIS is available (prefer MSI if both exist)
-    if (nsisAsset && nsisSignature && !msiAsset) {
-      updaterResponse.platforms['windows-x86_64'] = {
-        signature: nsisSignature.browser_download_url,
-        url: nsisAsset.browser_download_url
-      };
+    if (nsisAsset && nsisSignature && !updaterResponse.platforms['windows-x86_64']) {
+      try {
+        // Fetch the actual signature content from the .sig file
+        const sigResponse = await fetch(nsisSignature.browser_download_url);
+        if (sigResponse.ok) {
+          const signatureContent = await sigResponse.text();
+
+          updaterResponse.platforms['windows-x86_64'] = {
+            signature: signatureContent,
+            url: nsisAsset.browser_download_url
+          };
+        }
+      } catch (error) {
+        console.error('Failed to fetch NSIS signature:', error);
+      }
     }
 
     // Check if we have any platforms configured
     if (Object.keys(updaterResponse.platforms).length === 0) {
       return NextResponse.json(
-        { 
+        {
           error: 'No valid updater files found in release',
           details: 'This release is missing the required .zip.sig signature files that Tauri needs for automatic updates.',
           availableAssets: release.assets.map(asset => asset.name),
