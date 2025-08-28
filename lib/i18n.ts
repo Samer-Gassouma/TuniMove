@@ -335,10 +335,8 @@ export const translations = {
     paymentSuccessful: 'PAYMENT_SUCCESSFUL!',
     tripSuccessfullyBooked: 'TRIP_SUCCESSFULLY_BOOKED_AND_PAID',
     bookingConfirmed: 'Booking Confirmed',
-    tripDetails: 'Trip Details',
     passengerPayment: 'Passenger & Payment',
     routeMap: 'Route Map',
-    verificationCode: 'Verification Code',
     showCodeToDriver: 'Show this code to the driver when boarding',
     vehicleInformation: 'Vehicle Information',
     allocatedVehicles: 'Your allocated vehicles and driver details',
@@ -374,7 +372,6 @@ export const translations = {
     ticketExpired: 'TICKET_EXPIRED',
     yourTicketHasExpired: 'Your ticket has expired',
     ticketExpiredExplanation: 'Unfortunately, your ticket has expired. The countdown timer and bonus time have both run out.',
-    bookNewTrip: 'BOOK_NEW_TRIP',
     refundComingSoon: 'REFUND_COMING_SOON',
     needHelp: 'NEED_HELP?',
     contactCustomerServiceExpired: 'Contact customer service for assistance with expired tickets and refund options.',
@@ -709,10 +706,8 @@ export const translations = {
     paymentSuccessful: 'PAIEMENT_RÉUSSI!',
     tripSuccessfullyBooked: 'VOYAGE_RÉSERVÉ_ET_PAYÉ_AVEC_SUCCÈS',
     bookingConfirmed: 'Réservation Confirmée',
-    tripDetails: 'Détails du Voyage',
     passengerPayment: 'Passager et Paiement',
     routeMap: 'Carte des Itinéraires',
-    verificationCode: 'Code de Vérification',
     showCodeToDriver: 'Montrez ce code au conducteur lors de l\'embarquement',
     vehicleInformation: 'Informations sur le Véhicule',
     allocatedVehicles: 'Vos véhicules alloués et détails du conducteur',
@@ -748,7 +743,6 @@ export const translations = {
     ticketExpired: 'BILLET_EXPIRÉ',
     yourTicketHasExpired: 'Votre billet a expiré',
     ticketExpiredExplanation: 'Malheureusement, votre billet a expiré. Le compte à rebours et le temps bonus ont tous deux expiré.',
-    bookNewTrip: 'RÉSERVER_NOUVEAU_VOYAGE',
     refundComingSoon: 'REMBOURSEMENT_BIENTÔT_DISPONIBLE',
     needHelp: 'BESOIN_D\'AIDE?',
     contactCustomerServiceExpired: 'Contactez le service client pour obtenir de l\'aide avec les billets expirés et les options de remboursement.',
@@ -762,21 +756,11 @@ export const translations = {
     // Profile Page
     personalDetails: 'Informations Personnelles',
     managePersonalDetails: 'Gérez vos informations personnelles et coordonnées',
-    editProfile: 'Modifier le Profil',
-    saveChanges: 'Enregistrer les Modifications',
     saving: 'Enregistrement...',
-    cancel: 'Annuler',
     verified: 'Vérifié',
-    pending: 'En Attente',
-    memberSince: 'Membre depuis',
+
     error: 'Erreur',
     success: 'Succès',
-    firstName: 'Prénom',
-    lastName: 'Nom',
-    email: 'E-mail',
-    phoneNumber: 'Numéro de Téléphone',
-    profileUpdated: 'Profil mis à jour avec succès',
-    failedToUpdate: 'Échec de la mise à jour du profil',
 
     // Booking History Page
     tripHistory: 'HISTORIQUE_DES_VOYAGES',
@@ -786,7 +770,6 @@ export const translations = {
     noTripsYet: 'AUCUN_VOYAGE_ENCORE',
     startJourneyWithUs: 'COMMENCEZ_VOTRE_VOYAGE_AVEC_NOUS_RÉSERVEZ_VOTRE_PREMIER_VOYAGE_EXPLOREZ_DESTINATIONS',
     bookYourFirstTrip: 'RÉSERVEZ_VOTRE_PREMIER_VOYAGE',
-    dashboard: 'TABLEAU_DE_BORD',
     noOnlineStationsAvailable: 'AUCUNE_STATION_EN_LIGNE_DISPONIBLE'
   }
 };

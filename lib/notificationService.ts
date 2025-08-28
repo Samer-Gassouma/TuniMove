@@ -127,10 +127,17 @@ export class NotificationService {
       throw new Error('Service Worker not registered');
     }
 
+    // Check if VAPID key is available
+    const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    if (!vapidKey) {
+      console.warn('VAPID public key not found. Push notifications will not work without it.');
+      return null;
+    }
+
     try {
       const subscription = await this.swRegistration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: this.urlBase64ToUint8Array(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || '')
+        applicationServerKey: this.urlBase64ToUint8Array(vapidKey) as any
       });
 
       console.log('Push notification subscription created:', subscription);
@@ -154,7 +161,7 @@ export class NotificationService {
     for (let i = 0; i < rawData.length; ++i) {
       outputArray[i] = rawData.charCodeAt(i);
     }
-    return outputArray;
+    return outputArray as Uint8Array;
   }
 
   // Unsubscribe from push notifications

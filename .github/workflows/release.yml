@@ -1,0 +1,57 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build application
+        run: pnpm build
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            .next/**
+            public/**
+            package.json
+            pnpm-lock.yaml
+            next.config.ts
+            tsconfig.json
+            tailwind.config.js
+            postcss.config.mjs
+            components.json
+          draft: false
+          prerelease: false
+          body: |
+            ## What's Changed
+            
+            This release includes the latest updates for TuniMove Web Application.
+            
+            ## Auto-Update
+            
+            The application will automatically update when deployed to your hosting platform.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

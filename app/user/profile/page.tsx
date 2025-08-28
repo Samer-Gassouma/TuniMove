@@ -180,18 +180,14 @@ export default function ProfilePage() {
                 className="text-slate-400 hover:text-white hover:bg-slate-800/50 flex-shrink-0"
               >
                 <ArrowLeft className="w-4 h-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">{t('dashboard')}</span>
+                <span className="hidden sm:inline">{t('dashboard' as any)}</span>
               </Button>
               <div className="w-px h-4 sm:h-6 bg-slate-700 hidden sm:block"></div>
-              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 bg-purple-600/20 rounded-lg sm:rounded-xl flex items-center justify-center flex-shrink-0">
-                  <User className="w-4 h-4 sm:w-5 sm:w-5 text-purple-400" />
-                </div>
-                <div className="min-w-0">
-                  <h1 className="text-lg sm:text-xl font-bold text-white truncate">{t('myProfile')}</h1>
-                  <p className="text-slate-400 text-xs sm:text-sm hidden sm:block">{t('manageYourAccountSettings')}</p>
-                </div>
-              </div>
+            </div>
+            
+            <div className="flex-1 text-center sm:text-left">
+              <h1 className="text-lg sm:text-xl font-bold text-white truncate">{t('myProfile' as any)}</h1>
+              <p className="text-slate-400 text-xs sm:text-sm hidden sm:block">{t('manageYourAccountSettings' as any)}</p>
             </div>
             
             <LanguageSwitcher />
@@ -218,10 +214,10 @@ export default function ProfilePage() {
                 <div className="flex flex-wrap items-center gap-2 mt-2">
                   <Badge className="bg-emerald-600/20 text-emerald-400 border-emerald-500/30 text-xs sm:text-sm">
                     <Shield className="w-3 h-3 mr-1" />
-                    {user.isPhoneVerified ? t('verified') : t('pending')}
+                    {user.isPhoneVerified ? t('verified' as any) : t('pending' as any)}
                   </Badge>
                   <Badge className="bg-blue-600/20 text-blue-400 border-blue-500/30 text-xs sm:text-sm">
-                    {t('memberSince')} {new Date(user.createdAt).getFullYear()}
+                    {t('memberSince' as any)} {new Date(user.createdAt).getFullYear()}
                   </Badge>
                 </div>
               </div>
@@ -236,12 +232,12 @@ export default function ProfilePage() {
               <div>
                 <CardTitle className="text-xl sm:text-2xl text-white flex items-center gap-2 sm:gap-3">
                   <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-600/20 rounded-lg sm:rounded-xl flex items-center justify-center">
-                    <User className="w-4 h-4 sm:w-5 sm:h-5 text-blue-400" />
+                    <User className="w-4 h-4 sm:w-5 sm:w-5 text-blue-400" />
                   </div>
-                  {t('personalDetails')}
+                  {t('personalDetails' as any)}
                 </CardTitle>
                 <CardDescription className="text-slate-400 mt-1 sm:mt-2 text-sm sm:text-base">
-                  {t('managePersonalDetails')}
+                  {t('managePersonalDetails' as any)}
                 </CardDescription>
               </div>
               
@@ -251,7 +247,7 @@ export default function ProfilePage() {
                   className="bg-blue-600 hover:bg-blue-700 text-white self-start sm:self-auto"
                 >
                   <Edit2 className="w-4 h-4 mr-2" />
-                  {t('editProfile')}
+                  {t('editProfile' as any)}
                 </Button>
               ) : (
                 <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 self-start sm:self-auto">
@@ -261,7 +257,7 @@ export default function ProfilePage() {
                     className="bg-emerald-600 hover:bg-emerald-700 text-white"
                   >
                     <Save className="w-4 h-4 mr-2" />
-                    {isLoading ? t('saving') : t('saveChanges')}
+                    {isLoading ? t('saving' as any) : t('saveChanges' as any)}
                   </Button>
                   <Button 
                     onClick={handleCancel}
@@ -269,7 +265,7 @@ export default function ProfilePage() {
                     className="border-slate-600 text-slate-300 hover:bg-slate-700 hover:text-white"
                   >
                     <X className="w-4 h-4 mr-2" />
-                    {t('cancel')}
+                    {t('cancel' as any)}
                   </Button>
                 </div>
               )}
@@ -281,7 +277,7 @@ export default function ProfilePage() {
               <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 mb-4 sm:mb-6">
                 <div className="flex items-center space-x-2">
                   <AlertTriangle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-medium text-sm sm:text-base">{t('error')}</span>
+                  <span className="font-medium text-sm sm:text-base">{t('error' as any)}</span>
                 </div>
                 <p className="mt-1 sm:mt-2 text-sm sm:text-base">{error}</p>
               </div>
@@ -291,7 +287,7 @@ export default function ProfilePage() {
               <div className="p-3 sm:p-4 rounded-lg sm:rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-4 sm:mb-6">
                 <div className="flex items-center space-x-2">
                   <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span className="font-medium text-sm sm:text-base">{t('success')}</span>
+                  <span className="font-medium text-sm sm:text-base">{t('success' as any)}</span>
                 </div>
                 <p className="mt-1 sm:mt-2 text-sm sm:text-base">{success}</p>
               </div>
